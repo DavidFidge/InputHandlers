@@ -198,7 +198,7 @@ namespace InputHandlers.Keyboard
             int a;
             var b = 0;
             for (a = 0; a < keyList.Length; a++)
-                if (!((!TreatModifiersAsKeys && keyList[a].IsMod()) || UnmanagedKeys.Contains(keyList[a])))
+                if (!((!TreatModifiersAsKeys && keyList[a].IsModifierKey()) || UnmanagedKeys.Contains(keyList[a])))
                 {
                     //if not modifier and not in unmanaged list then copy the value to next valid part in array, otherwise skip over(a will advance, b will stay the same and then next time the modiffier/unmanaged key will be overwritten by a good key)
                     keyList[b] = keyList[a];

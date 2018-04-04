@@ -190,7 +190,7 @@ namespace InputHandlersSample
 
         public void WriteTextToTextbox(Keys focus, KeyboardModifier m)
         {
-            _keyboardLabels[6].Text += focus.ToPrintableString(m);
+            _keyboardLabels[6].Text += focus.Display(m);
 
             if ((focus == Keys.Back) && (_keyboardLabels[6].Text.Length > 22))
                 _keyboardLabels[6].Text = _keyboardLabels[6].Text.Remove(_keyboardLabels[6].Text.Length - 1, 1);

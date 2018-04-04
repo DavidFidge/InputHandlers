@@ -101,46 +101,49 @@ namespace InputHandlers.Keyboard
         }
 
         /// <summary>
-        ///     returns whether this key is a "modifier" key i.e. control, shift or alt
+        /// Returns whether this key is a "modifier" key i.e. control, shift or alt
         /// </summary>
-        public static bool IsMod(this Keys key)
+        public static bool IsModifierKey(this Keys key)
         {
             return IsShift(key) || IsAlt(key) || IsCtrl(key);
         }
 
         /// <summary>
-        ///     returns kbmodifer object which has shift bit flagged if a shift key was pressed
+        /// Returns KeyboardModifier object which has shift bit flagged if a shift key was pressed
         /// </summary>
         /// <param name="key"></param>
-        /// <returns></returns>
+        /// <returns>KeyboardModifier object which has shift bit flagged if a shift key was pressed</returns>
         public static KeyboardModifier IsShiftModifier(this Keys key)
         {
             if ((key == Keys.LeftShift) || (key == Keys.RightShift))
                 return KeyboardModifier.Shift;
+
             return KeyboardModifier.None;
         }
 
         /// <summary>
-        ///     returns kbmodifier object with control key flagged if a control key was pressed
+        /// Returns KeyboardModifier object with control key flagged if a control key was pressed
         /// </summary>
         /// <param name="key"></param>
-        /// <returns></returns>
+        /// <returns>KeyboardModifier object with control key flagged if a control key was pressed</returns>
         public static KeyboardModifier IsCtrlModifier(this Keys key)
         {
             if ((key == Keys.LeftControl) || (key == Keys.RightControl))
                 return KeyboardModifier.Ctrl;
+
             return KeyboardModifier.None;
         }
 
         /// <summary>
-        ///     returns kbmodifier object with alt key flagged if an alt key is pressed
+        /// Returns KeyboardModifier object with alt key flagged if an alt key is pressed
         /// </summary>
         /// <param name="key"></param>
-        /// <returns></returns>
+        /// <returns>KeyboardModifier object with alt key flagged if an alt key is pressed</returns>
         public static KeyboardModifier IsAltModifier(this Keys key)
         {
             if ((key == Keys.LeftAlt) || (key == Keys.RightAlt))
                 return KeyboardModifier.Alt;
+
             return KeyboardModifier.None;
         }
 
@@ -151,9 +154,9 @@ namespace InputHandlers.Keyboard
         /// <param name="key"></param>
         /// <param name="keyboardModifier"></param>
         /// <returns></returns>
-        public static string ToPrintableString(this Keys key, KeyboardModifier keyboardModifier)
+        public static string Display(this Keys key, KeyboardModifier keyboardModifier)
         {
-            return ToPrintableString(key, keyboardModifier, true, true, true, false);
+            return Display(key, keyboardModifier, true, true, true, false);
         }
 
         /// <summary>
@@ -163,9 +166,9 @@ namespace InputHandlers.Keyboard
         /// <param name="keyboardModifier"></param>
         /// <param name="selectspecials"></param>
         /// <returns></returns>
-        public static string ToPrintableString(this Keys key, KeyboardModifier keyboardModifier, bool selectspecials)
+        public static string Display(this Keys key, KeyboardModifier keyboardModifier, bool selectspecials)
         {
-            return ToPrintableString(key, keyboardModifier, selectspecials, true, true, false);
+            return Display(key, keyboardModifier, selectspecials, true, true, false);
         }
 
         /// <summary>
@@ -177,10 +180,10 @@ namespace InputHandlers.Keyboard
         /// <param name="selectalphas">filters so that alphas are selected if true</param>
         /// <param name="selectnumerics">filters so that numerics are selected if true </param>
         /// <returns></returns>
-        public static string ToPrintableString(this Keys key, KeyboardModifier keyboardModifier, bool selectspecials, bool selectalphas,
+        public static string Display(this Keys key, KeyboardModifier keyboardModifier, bool selectspecials, bool selectalphas,
             bool selectnumerics)
         {
-            return ToPrintableString(key, keyboardModifier, selectspecials, selectalphas, selectnumerics, false);
+            return Display(key, keyboardModifier, selectspecials, selectalphas, selectnumerics, false);
         }
 
 
@@ -196,15 +199,18 @@ namespace InputHandlers.Keyboard
         /// <param name="selectnumerics">filters so that numerics are selected if true </param>
         /// <param name="suppressspace">no spaces are output</param>
         /// <returns></returns>
-        public static string ToPrintableString(this Keys key, KeyboardModifier keyboardModifier, bool selectspecials, bool selectalphas,
+        public static string Display(this Keys key, KeyboardModifier keyboardModifier, bool selectspecials, bool selectalphas,
             bool selectnumerics, bool suppressspace, bool treatNumpadAsNumeric = true)
         {
             if (IsKeySpace(key) && !suppressspace)
                 return " ";
-            if ((IsKeyAlpha(key) && selectalphas) ||
-                (IsKeyNumber(key) && selectnumerics) ||
-                (treatNumpadAsNumeric && IsKeyNumberpad(key) && selectnumerics) ||
-                (selectspecials && ((!IsKeyAlpha(key) && !IsKeyNumeric(key)) || (IsKeyNumber(key) && IsShiftDown(keyboardModifier)))))
+
+            if ((IsKeyAlpha(key) && selectalphas)
+                || (IsKeyNumber(key) && selectnumerics)
+                || (treatNumpadAsNumeric && IsKeyNumberpad(key) && selectnumerics)
+                || (selectspecials 
+                    && ((!IsKeyAlpha(key) && !IsKeyNumeric(key))
+                    || (IsKeyNumber(key) && IsShiftDown(keyboardModifier)))))
                 if (IsShiftDown(keyboardModifier))
                 {
                     if (!(!selectspecials && IsKeyNumber(key)))
@@ -219,7 +225,7 @@ namespace InputHandlers.Keyboard
         }
 
         /// <summary>
-        ///     gets a bit field (kbmodifiers) indicating which "modifier" keys are down (control, shift, alt)
+        /// Gets KeyboardModifier flags indicating which "modifier" keys are down (control, shift, alt)
         /// </summary>
         /// <param name="keyboardState">keyboard state to test</param>
         /// <returns>bit field with modifier keys flagged</returns>
