@@ -10,7 +10,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
-namespace inputhandlerssample
+namespace InputHandlersSample
 {
     public class InputHandler : IMouseHandler, IKeyboardHandler
     {
@@ -18,25 +18,25 @@ namespace inputhandlerssample
         private List<SimpleLabel> _mouseLabels;
         private Stopwatch _realTimer;
 
-        public void HandleKeyboardKeyDown(Keys[] klist, Keys focus, KeyboardModifier m)
+        public void HandleKeyboardKeyDown(Keys[] keysDown, Keys keyInFocus, KeyboardModifier keyboardModifier)
         {
             _keyboardLabels[1].HighlightRed(_realTimer);
-            _keyboardLabels[5].Text += focus.ToString();
-            WriteCurrentKeysToTextbox(klist, m);
-            WriteTextToTextbox(focus, m);
+            _keyboardLabels[5].Text += keyInFocus.ToString();
+            WriteCurrentKeysToTextbox(keysDown, keyboardModifier);
+            WriteTextToTextbox(keyInFocus, keyboardModifier);
         }
 
-        public void HandleKeyboardKeyLost(Keys[] klist, KeyboardModifier m)
+        public void HandleKeyboardKeyLost(Keys[] keysDown, KeyboardModifier keyboardModifier)
         {
             _keyboardLabels[2].HighlightRed(_realTimer);
-            WriteCurrentKeysToTextbox(klist, m);
+            WriteCurrentKeysToTextbox(keysDown, keyboardModifier);
         }
 
-        public void HandleKeyboardKeyRepeat(Keys repeatkey, KeyboardModifier m)
+        public void HandleKeyboardKeyRepeat(Keys repeatingKey, KeyboardModifier keyboardModifier)
         {
             _keyboardLabels[3].Activate();
-            _keyboardLabels[5].Text += repeatkey.ToString();
-            WriteTextToTextbox(repeatkey, m);
+            _keyboardLabels[5].Text += repeatingKey.ToString();
+            WriteTextToTextbox(repeatingKey, keyboardModifier);
         }
 
         public void HandleKeyboardKeysReleased()
@@ -46,77 +46,77 @@ namespace inputhandlerssample
             _keyboardLabels[7].Text = "no keys down";
         }
 
-        public void HandleMouseScrollWheelMove(MouseState m, int diff)
+        public void HandleMouseScrollWheelMove(MouseState mouseState, int difference)
         {
             _mouseLabels[1].HighlightRed(_realTimer);
         }
 
-        public void HandleMouseMoving(MouseState m)
+        public void HandleMouseMoving(MouseState mouseState)
         {
             _mouseLabels[2].Activate();
         }
 
-        public void HandleLeftMouseClick(MouseState m)
+        public void HandleLeftMouseClick(MouseState mouseState)
         {
             _mouseLabels[3].HighlightRed(_realTimer);
         }
 
-        public void HandleLeftMouseDoubleClick(MouseState m)
+        public void HandleLeftMouseDoubleClick(MouseState mouseState)
         {
             _mouseLabels[4].HighlightRed(_realTimer);
         }
 
-        public void HandleLeftMouseDown(MouseState m)
+        public void HandleLeftMouseDown(MouseState mouseState)
         {
             _mouseLabels[5].Activate();
         }
 
-        public void HandleLeftMouseUp(MouseState m)
+        public void HandleLeftMouseUp(MouseState mouseState)
         {
             _mouseLabels[5].Deactivate();
             _mouseLabels[6].HighlightRed(_realTimer);
         }
 
-        public void HandleLeftMouseDragging(MouseState m, MouseState origin)
+        public void HandleLeftMouseDragging(MouseState mouseState, MouseState originalMouseState)
         {
             _mouseLabels[5].Deactivate();
             _mouseLabels[7].Activate();
         }
 
-        public void HandleLeftMouseDragDone(MouseState m, MouseState origin)
+        public void HandleLeftMouseDragDone(MouseState mouseState, MouseState originalMouseState)
         {
             _mouseLabels[7].Deactivate();
             _mouseLabels[8].HighlightRed(_realTimer);
         }
 
-        public void HandleRightMouseClick(MouseState m)
+        public void HandleRightMouseClick(MouseState mouseState)
         {
             _mouseLabels[9].HighlightRed(_realTimer);
         }
 
-        public void HandleRightMouseDoubleClick(MouseState m)
+        public void HandleRightMouseDoubleClick(MouseState mouseState)
         {
             _mouseLabels[10].HighlightRed(_realTimer);
         }
 
-        public void HandleRightMouseDown(MouseState m)
+        public void HandleRightMouseDown(MouseState mouseState)
         {
             _mouseLabels[11].Activate();
         }
 
-        public void HandleRightMouseUp(MouseState m)
+        public void HandleRightMouseUp(MouseState mouseState)
         {
             _mouseLabels[11].Deactivate();
             _mouseLabels[12].HighlightRed(_realTimer);
         }
 
-        public void HandleRightMouseDragging(MouseState m, MouseState origin)
+        public void HandleRightMouseDragging(MouseState mouseState, MouseState originalMouseState)
         {
             _mouseLabels[11].Deactivate();
             _mouseLabels[13].Activate();
         }
 
-        public void HandleRightMouseDragDone(MouseState m, MouseState origin)
+        public void HandleRightMouseDragDone(MouseState mouseState, MouseState originalMouseState)
         {
             _mouseLabels[13].Deactivate();
             _mouseLabels[14].HighlightRed(_realTimer);

@@ -7,7 +7,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
-namespace inputhandlerssample
+namespace InputHandlersSample
 {
     public class InputHandlersSample : Game
     {

@@ -6,7 +6,7 @@ using System.Linq;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace inputhandlerssample
+namespace InputHandlersSample
 {
     public class SimpleLabel
     {

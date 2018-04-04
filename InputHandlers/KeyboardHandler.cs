@@ -27,7 +27,7 @@ namespace InputHandlers.Keyboard
 
         private double _repeatDelay = 1000.0;
         private double _repeatFrequency = 50.0;
-        private List<IKeyboardHandler> _keyboardHandlers;
+        private readonly List<IKeyboardHandler> _keyboardHandlers;
 
         public KeyboardState OldKeyboardState { get; private set; }
         public KeyboardState CurrentKeyboardState { get; private set; }
@@ -106,27 +106,27 @@ namespace InputHandlers.Keyboard
                 _keyboardHandlers.Remove(keyboardHandler);
         }
 
-        private void CallHandleKeyboardKeyDown(Keys[] keyList, Keys focus, KeyboardModifier m)
+        private void CallHandleKeyboardKeyDown(Keys[] keysDown, Keys focus, KeyboardModifier keyboardModifier)
         {
             foreach (var keyboardHandler in _keyboardHandlers)
             {
-                keyboardHandler.HandleKeyboardKeyDown(keyList, focus, m);
+                keyboardHandler.HandleKeyboardKeyDown(keysDown, focus, keyboardModifier);
             }
         }
 
-        private void CallHandleKeyboardKeyLost(Keys[] keyList, KeyboardModifier m)
+        private void CallHandleKeyboardKeyLost(Keys[] keysDown, KeyboardModifier keyboardModifier)
         {
             foreach (var keyboardHandler in _keyboardHandlers)
             {
-                keyboardHandler.HandleKeyboardKeyLost(keyList, m);
+                keyboardHandler.HandleKeyboardKeyLost(keysDown, keyboardModifier);
             }
         }
 
-        private void CallHandleKeyboardKeyRepeat(Keys repeatKey, KeyboardModifier m)
+        private void CallHandleKeyboardKeyRepeat(Keys repeatingKey, KeyboardModifier keyboardModifier)
         {
             foreach (var keyboardHandler in _keyboardHandlers)
             {
-                keyboardHandler.HandleKeyboardKeyRepeat(repeatKey, m);
+                keyboardHandler.HandleKeyboardKeyRepeat(repeatingKey, keyboardModifier);
             }
         }
 
@@ -291,8 +291,8 @@ namespace InputHandlers.Keyboard
         }
 
         /// <summary>
-        ///     key down state.  A keydown event is sent for EVERY new key found.  If one or more modifier keys only then only one
-        ///     kbkeydown is sent.
+        /// Key down state.  A key down event is sent for EVERY new key found.  If one or more modifier keys only then only one
+        /// kbkeydown is sent.
         /// </summary>
         private sealed class KeyboardKeyDownState : State<KeyboardHandler>
         {
@@ -412,13 +412,13 @@ namespace InputHandlers.Keyboard
         }
 
         /// <summary>
-        ///     Key lost state, this happens when one or more keys are released but keys are still being held down.  Only one
-        ///     kbkeylost event is sent regardless of how many keys were lost.
-        ///     note - sometimes more than 2 keys wont register.  See this for explanation of keyboard hardware limitations:
-        ///     http://blogs.msdn.com/shawnhar/archive/2007/03/28/keyboards-suck.aspx
-        ///     2nd note - GetPressedKeys has a few other issues too - for example, holding down shift and pressing numpad9 or
-        ///     numpad3 will register a pageup/pagedown key in XNA, then on releasing the shift key and then releasing the numpad
-        ///     key will cause unexpected behaviour.
+        /// Key lost state happens when one or more keys are released but keys are still being held down.  Only one
+        /// kbkeylost event is sent regardless of how many keys were lost.
+        /// note - sometimes more than 2 keys wont register.  See this for explanation of keyboard hardware limitations:
+        /// http://blogs.msdn.com/shawnhar/archive/2007/03/28/keyboards-suck.aspx
+        /// 2nd note - GetPressedKeys has a few other issues too - for example, holding down shift and pressing numpad9 or
+        /// numpad3 will register a pageup/pagedown key in XNA, then on releasing the shift key and then releasing the numpad
+        /// key will cause unexpected behaviour.
         /// </summary>
         private sealed class KeyboardKeyLostState : State<KeyboardHandler>
         {
@@ -489,8 +489,8 @@ namespace InputHandlers.Keyboard
         }
 
         /// <summary>
-        ///     Key repeat state, this is entered when a key is held down for long enough and nothing else occurs.  A key repeat
-        ///     event happens every single time a poll occurs if the repeat delay time has been exceeded.
+        /// Key repeat state is entered when a key is held down for long enough and nothing else occurs.  A key repeat
+        /// event happens every single time a poll occurs if the repeat delay time has been exceeded.
         /// </summary>
         private sealed class KeyboardKeyRepeatState : State<KeyboardHandler>
         {

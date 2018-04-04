@@ -1,6 +1,6 @@
 using System;
 
-namespace inputhandlerssample
+namespace InputHandlersSample
 {
     static class Program
     {
