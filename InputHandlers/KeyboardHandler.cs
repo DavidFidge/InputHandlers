@@ -155,7 +155,7 @@ namespace InputHandlers.Keyboard
         }
 
         /// <summary>
-        /// Reset to stationary state.  You may wish to call this when, for example, switching interface screens.
+        /// Reset to unpressed state.  You may wish to call this when, for example, switching interface screens.
         /// </summary>
         public void Reset()
         {
@@ -176,40 +176,33 @@ namespace InputHandlers.Keyboard
             return _keyboardStateMachine.GetCurrentStateTypeName();
         }
 
-        private void StripFromNewKeys()
+        private bool IsUnmanagedKey(Keys key)
         {
-            StripFrom(ref _newKeyList);
+            return UnmanagedKeys.Contains(key);
         }
 
-        private void StripFromLastKeys()
+        private bool IsModifierKeyAndNotTreatingModifiersAsKey(Keys key)
         {
-            StripFrom(ref _lastKeyList);
+            return !TreatModifiersAsKeys && key.IsModifierKey();
         }
 
-        /// <summary>
-        ///     strip a keylist of unmanaged keys and ctrl,alt,shifts
-        /// </summary>
-        /// <param name="keyList">key list to strip unmanaged keys from</param>
-        private void StripFrom(ref Keys[] keyList)
+        private void StripUnmanagedKeysAndModifiers(ref Keys[] keyList)
         {
-            //return original array reference if nothing in the unmanaged list
-            if ((UnmanagedKeys.Count == 0) && TreatModifiersAsKeys)
+            if (UnmanagedKeys.Count == 0 && TreatModifiersAsKeys)
                 return;
-            int a;
-            var b = 0;
-            for (a = 0; a < keyList.Length; a++)
-                if (!((!TreatModifiersAsKeys && keyList[a].IsModifierKey()) || UnmanagedKeys.Contains(keyList[a])))
+
+            int keyListIndex;
+            var keyListUpdateIndex = 0;
+
+            for (keyListIndex = 0; keyListIndex < keyList.Length; keyListIndex++)
+                if (!(IsModifierKeyAndNotTreatingModifiersAsKey(keyList[keyListIndex]) || IsUnmanagedKey(keyList[keyListIndex])))
                 {
-                    //if not modifier and not in unmanaged list then copy the value to next valid part in array, otherwise skip over(a will advance, b will stay the same and then next time the modiffier/unmanaged key will be overwritten by a good key)
-                    keyList[b] = keyList[a];
-                    b++;
+                    keyList[keyListUpdateIndex] = keyList[keyListIndex];
+                    keyListUpdateIndex++;
                 }
-            if (b < a)
+            if (keyListUpdateIndex < keyList.Length)
             {
-                var newlist = new Keys[b];
-                for (var j = 0; j < b; j++)
-                    newlist[j] = keyList[j];
-                keyList = newlist;
+                keyList = keyList.Take(keyListUpdateIndex).ToArray();
             }
         }
 
@@ -217,7 +210,7 @@ namespace InputHandlers.Keyboard
         {
             _lastKeyList = CurrentKeyboardState.GetPressedKeys();
             _lastModifiers = CurrentKeyboardState.GetModifiers();
-            StripFromLastKeys();
+            StripUnmanagedKeysAndModifiers(ref _lastKeyList);
             _newlyFoundKeys.Clear();
         }
 
@@ -225,7 +218,7 @@ namespace InputHandlers.Keyboard
         {
             _newKeyList = CurrentKeyboardState.GetPressedKeys();
             _newModifiers = CurrentKeyboardState.GetModifiers();
-            StripFromNewKeys();
+            StripUnmanagedKeysAndModifiers(ref _newKeyList);
 
             _newlyFoundKeys = _newKeyList.Except(_lastKeyList).ToList();
         }
@@ -296,14 +289,13 @@ namespace InputHandlers.Keyboard
         /// </summary>
         private sealed class KeyboardKeyDownState : State<KeyboardHandler>
         {
-            //keeps track of how long keys held down for, will change to a keyrepeat state if held down for longer than the delay specified in the KeyboardHandler object
-            private TimeSpan _timeDelay;
+            private TimeSpan _elapsedTimeSinceKeysChanged;
 
             public override void Enter(KeyboardHandler keyboardHandler)
             {
-                _timeDelay = _timeDelay = keyboardHandler.LastPollTime.Elapsed;
+                _elapsedTimeSinceKeysChanged = _elapsedTimeSinceKeysChanged = keyboardHandler.LastPollTime.Elapsed;
 
-                if (ReferenceEquals(keyboardHandler._keyboardStateMachine.PreviousState, keyboardHandler._keyboardUnpressedState))
+                if (keyboardHandler._keyboardStateMachine.PreviousState == keyboardHandler._keyboardUnpressedState)
                 {
                     // coming from unpressed, need to do processing
                     // if entering this state always reset time and focus key
@@ -314,6 +306,7 @@ namespace InputHandlers.Keyboard
 
                     if (keyboardHandler._lastKeyList.Length == 0)
                         keyboardHandler.CallHandleKeyboardKeyDown(keyboardHandler._lastKeyList, Keys.None, keyboardHandler._lastModifiers);
+
                     foreach (var kevent in keyboardHandler._lastKeyList)
                     {
                         // send event for each key (focus being different for each key)
@@ -325,7 +318,6 @@ namespace InputHandlers.Keyboard
                 }
                 else
                 {
-                    // the other state has done the processing so just need to do the down event
                     foreach (var newkey in keyboardHandler._newlyFoundKeys)
                     {
                         keyboardHandler.CallHandleKeyboardKeyDown(keyboardHandler._newKeyList, newkey, keyboardHandler._newModifiers);
@@ -361,7 +353,7 @@ namespace InputHandlers.Keyboard
                             keyboardHandler._focusKey = Keys.None;
 
                             // since a change has happened make a new timespan
-                            _timeDelay = keyboardHandler.LastPollTime.Elapsed;
+                            _elapsedTimeSinceKeysChanged = keyboardHandler.LastPollTime.Elapsed;
 
                             if (modifierDiff == KeyboardModifier.None
                                 || (modifierDiff & keyboardHandler._newModifiers) == (modifierDiff & keyboardHandler._lastModifiers))
@@ -383,7 +375,7 @@ namespace InputHandlers.Keyboard
                                 throw new Exception("code error, unhandled mod key state");
                         }
                         else if (keyboardHandler._focusKey != Keys.None
-                                 && (keyboardHandler.LastPollTime.Elapsed.TotalMilliseconds - _timeDelay.TotalMilliseconds >
+                                 && (keyboardHandler.LastPollTime.Elapsed.TotalMilliseconds - _elapsedTimeSinceKeysChanged.TotalMilliseconds >
                                      keyboardHandler._repeatDelay))
                         {
                             keyboardHandler._keyboardStateMachine.ChangeState(keyboardHandler._keyboardKeyRepeatState);
@@ -394,7 +386,7 @@ namespace InputHandlers.Keyboard
                         {
                             keyboardHandler.CallHandleKeyboardKeyDown(keyboardHandler._newKeyList, newkey, keyboardHandler._newModifiers);
                             keyboardHandler._focusKey = newkey;
-                            _timeDelay = keyboardHandler.LastPollTime.Elapsed;
+                            _elapsedTimeSinceKeysChanged = keyboardHandler.LastPollTime.Elapsed;
                         }
                 }
                 
