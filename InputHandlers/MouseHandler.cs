@@ -36,7 +36,7 @@ namespace InputHandlers.Mouse
         /// <summary>
         /// If time between clicks in milliseconds is less than this value then it is considered a double click
         /// </summary>
-        public uint DoubleClickTime { get; set; }
+        public uint DoubleClickDetectionTimeDelay { get; set; }
 
         /// <summary>
         /// This is incremented on each update.  This can be used to determine whether a sequence of events have occurred within the same update time. 
@@ -62,7 +62,7 @@ namespace InputHandlers.Mouse
             _mouseStateMachine.SetCurrentState(_mouseStationaryState);
             _mouseStateMachine.SetPreviousState(_mouseStationaryState);
             DragVariance = 10;
-            DoubleClickTime = 400;
+            DoubleClickDetectionTimeDelay = 400;
         }
 
         public void Subscribe(IMouseHandler mouseHandler)
@@ -234,6 +234,12 @@ namespace InputHandlers.Mouse
                 CallHandleMouseScrollWheelMove(CurrentMouseState, diff);
         }
 
+        private bool IsStartingDragDrop()
+        {
+            return (Math.Abs(DragOriginPosition.X - CurrentMouseState.X) > DragVariance) ||
+                   (Math.Abs(DragOriginPosition.Y - CurrentMouseState.Y) > DragVariance);
+        }
+
         private sealed class MouseStationaryState : State<MouseHandler>
         {
             public override void Enter(MouseHandler mouseHandler)
@@ -242,7 +248,6 @@ namespace InputHandlers.Mouse
 
             public override void Execute(MouseHandler mouseHandler)
             {
-                // change state if mouse performs an action (left/right down or mouse moves), give left preference
                 if (mouseHandler.CurrentMouseState.LeftButton == ButtonState.Pressed)
                     mouseHandler._mouseStateMachine.ChangeState(mouseHandler._mouseLeftDownState);
                 else if (mouseHandler.CurrentMouseState.RightButton == ButtonState.Pressed)
@@ -269,7 +274,6 @@ namespace InputHandlers.Mouse
 
             public override void Execute(MouseHandler e)
             {
-                // give left preference
                 if (e.CurrentMouseState.LeftButton == ButtonState.Pressed)
                     e._mouseStateMachine.ChangeState(e._mouseLeftDownState);
                 else if (e.CurrentMouseState.RightButton == ButtonState.Pressed)
@@ -302,33 +306,27 @@ namespace InputHandlers.Mouse
 
             public override void Enter(MouseHandler mouseHandler)
             {
-                // store the point where the initial click has been made
                 mouseHandler.DragOriginPosition = mouseHandler.CurrentMouseState;
 
-                if (_detectDoubleClickTime == double.NegativeInfinity)
+                if (double.IsNegativeInfinity(_detectDoubleClickTime))
                 {
-                    // first mouse down for detection, set double click time
                     _detectDoubleClickTime = mouseHandler.LastPollTime.Elapsed.TotalMilliseconds;
                     mouseHandler.CallHandleLeftMouseDown(mouseHandler.CurrentMouseState);
                 }
                 else
                 {
-                    // double click time has been set, subtract elapsed time since first click
                     _detectDoubleClickTime -= mouseHandler.LastPollTime.Elapsed.TotalMilliseconds;
 
-                    if (_detectDoubleClickTime >= -mouseHandler.DoubleClickTime)
+                    if (_detectDoubleClickTime >= -mouseHandler.DoubleClickDetectionTimeDelay)
                     {
-                        // double click has happened in the allowed timeframe, do a double click event
                         mouseHandler.CallHandleLeftMouseDoubleClick(mouseHandler.DragOriginPosition);
 
                         _detectDoubleClickTime = double.NegativeInfinity;
 
-                        // rather than just change back to a stationary state, keep it consistent and wait until we get a mouse up (see execute)
                         _wasDoubleClickDone = true;
                     }
                     else
                     {
-                        // delay between first mouse click and this 2nd click was too long.  Stay in this state.  However this could be the first click of another double click, so set double click time 
                         _detectDoubleClickTime = mouseHandler.LastPollTime.Elapsed.TotalMilliseconds;
                         mouseHandler.CallHandleLeftMouseDown(mouseHandler.CurrentMouseState);
                     }
@@ -339,25 +337,20 @@ namespace InputHandlers.Mouse
             {
                 if (_wasDoubleClickDone)
                 {
-                    // a double click was just done on the entry code.  Dont want to send a mouse up or anything when this happens.  Just want to wait for the user to release the mouse button.
                     if (mouseHandler.CurrentMouseState.LeftButton == ButtonState.Released)
                     {
                         _wasDoubleClickDone = false;
                         mouseHandler._mouseStateMachine.ChangeState(mouseHandler._mouseStationaryState);
                     }
                 }
-                // check the 2 exit conditions - released mouse or moved mouse sufficiently to warrant dragging
                 else if (mouseHandler.CurrentMouseState.LeftButton == ButtonState.Released)
                 {
-                    // send a mouse up then a mouse click event to the interface, but use old position
                     mouseHandler.CallHandleLeftMouseUp(mouseHandler.DragOriginPosition);
                     mouseHandler.CallHandleLeftMouseClick(mouseHandler.DragOriginPosition);
                     mouseHandler._mouseStateMachine.ChangeState(mouseHandler._mouseStationaryState);
                 }
-                else if ((Math.Abs(mouseHandler.DragOriginPosition.X - mouseHandler.CurrentMouseState.X) > mouseHandler.DragVariance) ||
-                         (Math.Abs(mouseHandler.DragOriginPosition.Y - mouseHandler.CurrentMouseState.Y) > mouseHandler.DragVariance))
+                else if (mouseHandler.IsStartingDragDrop())
                 {
-                    // dont go into drag unless it breaks the fudging factor threshold
                     mouseHandler._mouseStateMachine.ChangeState(mouseHandler._mouseLeftDraggingState);
                 }
             }
@@ -418,9 +411,8 @@ namespace InputHandlers.Mouse
             {
                 mouseHandler.DragOriginPosition = mouseHandler.CurrentMouseState;
 
-                if (_detectDoubleClickTime == double.NegativeInfinity)
+                if (double.IsNegativeInfinity(_detectDoubleClickTime))
                 {
-                    // first mouse down for detection, set double click time
                     _detectDoubleClickTime = mouseHandler.LastPollTime.Elapsed.TotalMilliseconds;
                     
                     mouseHandler.CallHandleRightMouseDown(mouseHandler.CurrentMouseState);
@@ -429,19 +421,16 @@ namespace InputHandlers.Mouse
                 {
                     _detectDoubleClickTime -= mouseHandler.LastPollTime.Elapsed.TotalMilliseconds;
 
-                    if (_detectDoubleClickTime >= -mouseHandler.DoubleClickTime)
+                    if (_detectDoubleClickTime >= -mouseHandler.DoubleClickDetectionTimeDelay)
                     {
-                        // double click has happened in the allowed timeframe, do a double click event
                         mouseHandler.CallHandleRightMouseDoubleClick(mouseHandler.DragOriginPosition);
 
                         _detectDoubleClickTime = double.NegativeInfinity;
 
-                        // rather than just change back to a stationary state, keep it consistent and wait until we get a mouse up (see execute)
                         _wasDoubleClickDone = true;
                     }
                     else
                     {
-                        // delay between first mouse click and this 2nd click was too long.  Stay in this state.  However this could be the first click of another double click, so set double click time 
                         _detectDoubleClickTime = mouseHandler.LastPollTime.Elapsed.TotalMilliseconds;
                         mouseHandler.CallHandleRightMouseDown(mouseHandler.CurrentMouseState);
                     }
@@ -452,25 +441,20 @@ namespace InputHandlers.Mouse
             {
                 if (_wasDoubleClickDone)
                 {
-                    // a double click was just done on the entry code.  Dont want to send a mouse up or anything when this happens.  Just want to wait for the user to release the mouse button.
                     if (mouseHandler.CurrentMouseState.RightButton == ButtonState.Released)
                     {
                         _wasDoubleClickDone = false;
                         mouseHandler._mouseStateMachine.ChangeState(mouseHandler._mouseStationaryState);
                     }
                 }
-                // check the 2 exit conditions - released mouse or moved mouse sufficiently to warrant dragging
                 else if (mouseHandler.CurrentMouseState.RightButton == ButtonState.Released)
                 {
-                    // send a mouse up then a mouse click event to the interface, but use old position
                     mouseHandler.CallHandleRightMouseUp(mouseHandler.DragOriginPosition);
                     mouseHandler.CallHandleRightMouseClick(mouseHandler.DragOriginPosition);
                     mouseHandler._mouseStateMachine.ChangeState(mouseHandler._mouseStationaryState);
                 }
-                else if ((Math.Abs(mouseHandler.DragOriginPosition.X - mouseHandler.CurrentMouseState.X) > mouseHandler.DragVariance) ||
-                         (Math.Abs(mouseHandler.DragOriginPosition.Y - mouseHandler.CurrentMouseState.Y) > mouseHandler.DragVariance))
+                else if (mouseHandler.IsStartingDragDrop())
                 {
-                    // dont go into drag unless it breaks the fudging factor threshold
                     mouseHandler._mouseStateMachine.ChangeState(mouseHandler._mouseRightDraggingState);
                 }
             }

@@ -201,6 +201,7 @@ namespace InputHandlersSample
 
             foreach (var sl in _mouseLabels.Values)
                 sl.Update(gameTime, _realTimer);
+
             foreach (var sl in _keyboardLabels.Values)
                 sl.Update(gameTime, _realTimer);
         }
@@ -209,6 +210,7 @@ namespace InputHandlersSample
         {
             foreach (var sl in _mouseLabels.Values)
                 sl.Draw(spriteBatch, spriteFont);
+
             foreach (var sl in _keyboardLabels.Values)
                 sl.Draw(spriteBatch, spriteFont);
         }

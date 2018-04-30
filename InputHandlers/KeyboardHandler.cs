@@ -297,11 +297,8 @@ namespace InputHandlers.Keyboard
 
                 if (keyboardHandler._keyboardStateMachine.PreviousState == keyboardHandler._keyboardUnpressedState)
                 {
-                    // coming from unpressed, need to do processing
-                    // if entering this state always reset time and focus key
                     keyboardHandler._focusKey = Keys.None;
 
-                    // get keylist, strip out ctrl,alt,shift,unmanaged keys then send events
                     keyboardHandler.InitialiseLastKeyListFromKeyboardState();
 
                     if (keyboardHandler._lastKeyList.Length == 0)
@@ -309,10 +306,8 @@ namespace InputHandlers.Keyboard
 
                     foreach (var kevent in keyboardHandler._lastKeyList)
                     {
-                        // send event for each key (focus being different for each key)
                         keyboardHandler.CallHandleKeyboardKeyDown(keyboardHandler._lastKeyList, kevent, keyboardHandler._lastModifiers);
 
-                        // focus key will always be the last one processed
                         keyboardHandler._focusKey = kevent;
                     }
                 }
@@ -332,7 +327,6 @@ namespace InputHandlers.Keyboard
 
                 if (keyboardHandler.HasNoKeysPressed)
                 {
-                    // nothing pressed, change state back to unpressed
                     keyboardHandler._keyboardStateMachine.ChangeState(keyboardHandler._keyboardUnpressedState);
                     return;
                 }
@@ -349,10 +343,8 @@ namespace InputHandlers.Keyboard
                         {
                             var modifierDiff = keyboardHandler._newModifiers & keyboardHandler._lastModifiers;
 
-                            // if we remain in this state in this portion of code, focus key will be none
                             keyboardHandler._focusKey = Keys.None;
 
-                            // since a change has happened make a new timespan
                             _elapsedTimeSinceKeysChanged = keyboardHandler.LastPollTime.Elapsed;
 
                             if (modifierDiff == KeyboardModifier.None
@@ -431,7 +423,6 @@ namespace InputHandlers.Keyboard
 
                 if (keyboardHandler.AreKeysLost && keyboardHandler.HasNoAddedKeys)
                 {
-                    // a key was released but keys are still down
                     keyboardHandler.CallHandleKeyboardKeyLost(keyboardHandler._newKeyList, keyboardHandler._newModifiers);
                 }
                 else
@@ -440,13 +431,12 @@ namespace InputHandlers.Keyboard
                     {
                         var modifierDiff = keyboardHandler._newModifiers & keyboardHandler._lastModifiers;
 
-                        // if we remain in this state in this portion of code, focus key will be none
                         keyboardHandler._focusKey = Keys.None;
 
                         if ((modifierDiff == KeyboardModifier.None)
-                            // had one key the same but other two were different, send keyboard down
                             || ((modifierDiff & keyboardHandler._newModifiers) == (modifierDiff & keyboardHandler._lastModifiers)))
                         {
+                            // had one key the same but other two were different, send keyboard down
                             keyboardHandler._keyboardStateMachine.ChangeState(keyboardHandler._keyboardKeyDownState);
                         }
                         else if ((modifierDiff & keyboardHandler._newModifiers) == modifierDiff)
@@ -506,7 +496,6 @@ namespace InputHandlers.Keyboard
 
                 if (keyboardHandler.AreKeysLost && keyboardHandler.HasNoAddedKeys)
                 {
-                    // a key was released but keys are still down
                     keyboardHandler._keyboardStateMachine.ChangeState(keyboardHandler._keyboardKeyLostState);
                 }
                 else
@@ -516,7 +505,6 @@ namespace InputHandlers.Keyboard
                         {
                             var modifierDiff = keyboardHandler._newModifiers & keyboardHandler._lastModifiers;
 
-                            // if we remain in this state in this portion of code, focus key will be none
                             keyboardHandler._focusKey = Keys.None;
 
                             if ((modifierDiff == KeyboardModifier.None)
@@ -540,7 +528,6 @@ namespace InputHandlers.Keyboard
                         }
                         else
                         {
-                            // nothing at all changed, send a key repeat event (note - repeat time is detected in kbkeydown, so no need to keep track of time)
                             _repeatRunning -= (keyboardHandler.LastPollTime.Elapsed - _lastTime).TotalMilliseconds;
                             _lastTime = keyboardHandler.LastPollTime.Elapsed;
 
