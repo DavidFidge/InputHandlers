@@ -10,9 +10,9 @@ using Microsoft.Xna.Framework.Input;
 
 namespace InputHandlers.Keyboard
 {
-    public class KeyboardHandler
+    public class KeyboardInput
     {
-        private readonly StateMachine<KeyboardHandler> _keyboardStateMachine;
+        private readonly StateMachine<KeyboardInput> _keyboardStateMachine;
         private List<Keys> _newlyFoundKeys;
         private Keys _focusKey;
         private readonly KeyboardKeyDownState _keyboardKeyDownState;
@@ -71,10 +71,7 @@ namespace InputHandlers.Keyboard
         /// </summary>
         public bool TreatModifiersAsKeys { get; set; }
 
-        /// <summary>
-        /// Create keyboard handler object and initialise its state to unpressed
-        /// </summary>
-        public KeyboardHandler()
+        public KeyboardInput()
         {
             _keyboardHandlers = new List<IKeyboardHandler>();
 
@@ -88,7 +85,7 @@ namespace InputHandlers.Keyboard
             _keyboardKeyLostState = new KeyboardKeyLostState();
             _keyboardKeyRepeatState = new KeyboardKeyRepeatState();
 
-            _keyboardStateMachine = new StateMachine<KeyboardHandler>(this);
+            _keyboardStateMachine = new StateMachine<KeyboardInput>(this);
             _keyboardStateMachine.SetCurrentState(_keyboardUnpressedState);
             _keyboardStateMachine.SetPreviousState(_keyboardUnpressedState);
             UnmanagedKeys = new List<Keys>(0);
@@ -254,31 +251,31 @@ namespace InputHandlers.Keyboard
             }
         }
 
-        private sealed class KeyboardUnpressedState : State<KeyboardHandler>
+        private sealed class KeyboardUnpressedState : State<KeyboardInput>
         {
-            public override void Enter(KeyboardHandler keyboardHandler)
+            public override void Enter(KeyboardInput keyboardInput)
             {
-                keyboardHandler.CallHandleKeyboardKeysReleased();
+                keyboardInput.CallHandleKeyboardKeysReleased();
             }
 
-            public override void Execute(KeyboardHandler keyboardHandler)
+            public override void Execute(KeyboardInput keyboardInput)
             {
                 // get pressed keys list
-                var pressedKeys = keyboardHandler.CurrentKeyboardState.GetPressedKeys();
+                var pressedKeys = keyboardInput.CurrentKeyboardState.GetPressedKeys();
 
                 foreach (var dwn in pressedKeys)
-                    if ((keyboardHandler.UnmanagedKeys.Count == 0) || !keyboardHandler.UnmanagedKeys.Contains(dwn))
+                    if ((keyboardInput.UnmanagedKeys.Count == 0) || !keyboardInput.UnmanagedKeys.Contains(dwn))
                     {
-                        keyboardHandler._keyboardStateMachine.ChangeState(keyboardHandler._keyboardKeyDownState);
+                        keyboardInput._keyboardStateMachine.ChangeState(keyboardInput._keyboardKeyDownState);
                         break;
                     }
             }
 
-            public override void Exit(KeyboardHandler keyboardHandler)
+            public override void Exit(KeyboardInput keyboardInput)
             {
             }
 
-            public override void Reset(KeyboardHandler keyboardHandler)
+            public override void Reset(KeyboardInput keyboardInput)
             {
             }
         }
@@ -287,110 +284,110 @@ namespace InputHandlers.Keyboard
         /// Key down state.  A key down event is sent for EVERY new key found.  If one or more modifier keys only then only one
         /// kbkeydown is sent.
         /// </summary>
-        private sealed class KeyboardKeyDownState : State<KeyboardHandler>
+        private sealed class KeyboardKeyDownState : State<KeyboardInput>
         {
             private TimeSpan _elapsedTimeSinceKeysChanged;
 
-            public override void Enter(KeyboardHandler keyboardHandler)
+            public override void Enter(KeyboardInput keyboardInput)
             {
-                _elapsedTimeSinceKeysChanged = _elapsedTimeSinceKeysChanged = keyboardHandler.LastPollTime.Elapsed;
+                _elapsedTimeSinceKeysChanged = _elapsedTimeSinceKeysChanged = keyboardInput.LastPollTime.Elapsed;
 
-                if (keyboardHandler._keyboardStateMachine.PreviousState == keyboardHandler._keyboardUnpressedState)
+                if (keyboardInput._keyboardStateMachine.PreviousState == keyboardInput._keyboardUnpressedState)
                 {
-                    keyboardHandler._focusKey = Keys.None;
+                    keyboardInput._focusKey = Keys.None;
 
-                    keyboardHandler.InitialiseLastKeyListFromKeyboardState();
+                    keyboardInput.InitialiseLastKeyListFromKeyboardState();
 
-                    if (keyboardHandler._lastKeyList.Length == 0)
-                        keyboardHandler.CallHandleKeyboardKeyDown(keyboardHandler._lastKeyList, Keys.None, keyboardHandler._lastModifiers);
+                    if (keyboardInput._lastKeyList.Length == 0)
+                        keyboardInput.CallHandleKeyboardKeyDown(keyboardInput._lastKeyList, Keys.None, keyboardInput._lastModifiers);
 
-                    foreach (var kevent in keyboardHandler._lastKeyList)
+                    foreach (var kevent in keyboardInput._lastKeyList)
                     {
-                        keyboardHandler.CallHandleKeyboardKeyDown(keyboardHandler._lastKeyList, kevent, keyboardHandler._lastModifiers);
+                        keyboardInput.CallHandleKeyboardKeyDown(keyboardInput._lastKeyList, kevent, keyboardInput._lastModifiers);
 
-                        keyboardHandler._focusKey = kevent;
+                        keyboardInput._focusKey = kevent;
                     }
                 }
                 else
                 {
-                    foreach (var newkey in keyboardHandler._newlyFoundKeys)
+                    foreach (var newkey in keyboardInput._newlyFoundKeys)
                     {
-                        keyboardHandler.CallHandleKeyboardKeyDown(keyboardHandler._newKeyList, newkey, keyboardHandler._newModifiers);
-                        keyboardHandler._focusKey = newkey;
+                        keyboardInput.CallHandleKeyboardKeyDown(keyboardInput._newKeyList, newkey, keyboardInput._newModifiers);
+                        keyboardInput._focusKey = newkey;
                     }
                 }
             }
 
-            public override void Execute(KeyboardHandler keyboardHandler)
+            public override void Execute(KeyboardInput keyboardInput)
             {
-                keyboardHandler.GetNewKeyListFromKeyboardState();
+                keyboardInput.GetNewKeyListFromKeyboardState();
 
-                if (keyboardHandler.HasNoKeysPressed)
+                if (keyboardInput.HasNoKeysPressed)
                 {
-                    keyboardHandler._keyboardStateMachine.ChangeState(keyboardHandler._keyboardUnpressedState);
+                    keyboardInput._keyboardStateMachine.ChangeState(keyboardInput._keyboardUnpressedState);
                     return;
                 }
 
-                if (keyboardHandler.AreKeysLost && keyboardHandler.HasNoAddedKeys)
+                if (keyboardInput.AreKeysLost && keyboardInput.HasNoAddedKeys)
                 {
-                    keyboardHandler._keyboardStateMachine.ChangeState(keyboardHandler._keyboardKeyLostState);
+                    keyboardInput._keyboardStateMachine.ChangeState(keyboardInput._keyboardKeyLostState);
                 }
                 else
                 {
-                    if (keyboardHandler.HasNoAddedKeys)
+                    if (keyboardInput.HasNoAddedKeys)
                     {
-                        if (keyboardHandler._newModifiers != keyboardHandler._lastModifiers)
+                        if (keyboardInput._newModifiers != keyboardInput._lastModifiers)
                         {
-                            var modifierDiff = keyboardHandler._newModifiers & keyboardHandler._lastModifiers;
+                            var modifierDiff = keyboardInput._newModifiers & keyboardInput._lastModifiers;
 
-                            keyboardHandler._focusKey = Keys.None;
+                            keyboardInput._focusKey = Keys.None;
 
-                            _elapsedTimeSinceKeysChanged = keyboardHandler.LastPollTime.Elapsed;
+                            _elapsedTimeSinceKeysChanged = keyboardInput.LastPollTime.Elapsed;
 
                             if (modifierDiff == KeyboardModifier.None
-                                || (modifierDiff & keyboardHandler._newModifiers) == (modifierDiff & keyboardHandler._lastModifiers))
+                                || (modifierDiff & keyboardInput._newModifiers) == (modifierDiff & keyboardInput._lastModifiers))
                             {
                                 // had one key the same but other two were different, send keyboard down
-                                keyboardHandler.CallHandleKeyboardKeyDown(keyboardHandler._newKeyList, Keys.None, keyboardHandler._newModifiers);
+                                keyboardInput.CallHandleKeyboardKeyDown(keyboardInput._newKeyList, Keys.None, keyboardInput._newModifiers);
                             }
-                            else if ((modifierDiff & keyboardHandler._newModifiers) == modifierDiff)
+                            else if ((modifierDiff & keyboardInput._newModifiers) == modifierDiff)
                             {
                                 // new mod bits only had 1, which means it lost one, change to lost state
-                                keyboardHandler._keyboardStateMachine.ChangeState(keyboardHandler._keyboardKeyLostState);
+                                keyboardInput._keyboardStateMachine.ChangeState(keyboardInput._keyboardKeyLostState);
                             }
-                            else if ((modifierDiff & keyboardHandler._lastModifiers) == modifierDiff)
+                            else if ((modifierDiff & keyboardInput._lastModifiers) == modifierDiff)
                             {
                                 // old mod bits is less, send down event
-                                keyboardHandler.CallHandleKeyboardKeyDown(keyboardHandler._newKeyList, Keys.None, keyboardHandler._newModifiers);
+                                keyboardInput.CallHandleKeyboardKeyDown(keyboardInput._newKeyList, Keys.None, keyboardInput._newModifiers);
                             }
                             else
                                 throw new Exception("code error, unhandled mod key state");
                         }
-                        else if (keyboardHandler._focusKey != Keys.None
-                                 && (keyboardHandler.LastPollTime.Elapsed.TotalMilliseconds - _elapsedTimeSinceKeysChanged.TotalMilliseconds >
-                                     keyboardHandler._repeatDelay))
+                        else if (keyboardInput._focusKey != Keys.None
+                                 && (keyboardInput.LastPollTime.Elapsed.TotalMilliseconds - _elapsedTimeSinceKeysChanged.TotalMilliseconds >
+                                     keyboardInput._repeatDelay))
                         {
-                            keyboardHandler._keyboardStateMachine.ChangeState(keyboardHandler._keyboardKeyRepeatState);
+                            keyboardInput._keyboardStateMachine.ChangeState(keyboardInput._keyboardKeyRepeatState);
                         }
                     }
                     else
-                        foreach (var newkey in keyboardHandler._newlyFoundKeys)
+                        foreach (var newkey in keyboardInput._newlyFoundKeys)
                         {
-                            keyboardHandler.CallHandleKeyboardKeyDown(keyboardHandler._newKeyList, newkey, keyboardHandler._newModifiers);
-                            keyboardHandler._focusKey = newkey;
-                            _elapsedTimeSinceKeysChanged = keyboardHandler.LastPollTime.Elapsed;
+                            keyboardInput.CallHandleKeyboardKeyDown(keyboardInput._newKeyList, newkey, keyboardInput._newModifiers);
+                            keyboardInput._focusKey = newkey;
+                            _elapsedTimeSinceKeysChanged = keyboardInput.LastPollTime.Elapsed;
                         }
                 }
                 
-                keyboardHandler.UpdateLastKeyListWithNewKeyList();
+                keyboardInput.UpdateLastKeyListWithNewKeyList();
             }
 
-            public override void Exit(KeyboardHandler keyboardHandler)
+            public override void Exit(KeyboardInput keyboardInput)
             {
-                keyboardHandler.UpdateLastKeyListWithNewKeyList();
+                keyboardInput.UpdateLastKeyListWithNewKeyList();
             }
 
-            public override void Reset(KeyboardHandler keyboardHandler)
+            public override void Reset(KeyboardInput keyboardInput)
             {
             }
         }
@@ -404,68 +401,68 @@ namespace InputHandlers.Keyboard
         /// numpad3 will register a pageup/pagedown key in XNA, then on releasing the shift key and then releasing the numpad
         /// key will cause unexpected behaviour.
         /// </summary>
-        private sealed class KeyboardKeyLostState : State<KeyboardHandler>
+        private sealed class KeyboardKeyLostState : State<KeyboardInput>
         {
-            public override void Enter(KeyboardHandler keyboardHandler)
+            public override void Enter(KeyboardInput keyboardInput)
             {
-                keyboardHandler.CallHandleKeyboardKeyLost(keyboardHandler._newKeyList, keyboardHandler._newModifiers);
+                keyboardInput.CallHandleKeyboardKeyLost(keyboardInput._newKeyList, keyboardInput._newModifiers);
             }
 
-            public override void Execute(KeyboardHandler keyboardHandler)
+            public override void Execute(KeyboardInput keyboardInput)
             {
-                keyboardHandler.GetNewKeyListFromKeyboardState();
+                keyboardInput.GetNewKeyListFromKeyboardState();
 
-                if (keyboardHandler.HasNoKeysPressed)
+                if (keyboardInput.HasNoKeysPressed)
                 {
-                    keyboardHandler._keyboardStateMachine.ChangeState(keyboardHandler._keyboardUnpressedState);
+                    keyboardInput._keyboardStateMachine.ChangeState(keyboardInput._keyboardUnpressedState);
                     return;
                 }
 
-                if (keyboardHandler.AreKeysLost && keyboardHandler.HasNoAddedKeys)
+                if (keyboardInput.AreKeysLost && keyboardInput.HasNoAddedKeys)
                 {
-                    keyboardHandler.CallHandleKeyboardKeyLost(keyboardHandler._newKeyList, keyboardHandler._newModifiers);
+                    keyboardInput.CallHandleKeyboardKeyLost(keyboardInput._newKeyList, keyboardInput._newModifiers);
                 }
                 else
                 {
-                    if ((keyboardHandler.HasNoAddedKeys) && (keyboardHandler._newModifiers != keyboardHandler._lastModifiers))
+                    if ((keyboardInput.HasNoAddedKeys) && (keyboardInput._newModifiers != keyboardInput._lastModifiers))
                     {
-                        var modifierDiff = keyboardHandler._newModifiers & keyboardHandler._lastModifiers;
+                        var modifierDiff = keyboardInput._newModifiers & keyboardInput._lastModifiers;
 
-                        keyboardHandler._focusKey = Keys.None;
+                        keyboardInput._focusKey = Keys.None;
 
                         if ((modifierDiff == KeyboardModifier.None)
-                            || ((modifierDiff & keyboardHandler._newModifiers) == (modifierDiff & keyboardHandler._lastModifiers)))
+                            || ((modifierDiff & keyboardInput._newModifiers) == (modifierDiff & keyboardInput._lastModifiers)))
                         {
                             // had one key the same but other two were different, send keyboard down
-                            keyboardHandler._keyboardStateMachine.ChangeState(keyboardHandler._keyboardKeyDownState);
+                            keyboardInput._keyboardStateMachine.ChangeState(keyboardInput._keyboardKeyDownState);
                         }
-                        else if ((modifierDiff & keyboardHandler._newModifiers) == modifierDiff)
+                        else if ((modifierDiff & keyboardInput._newModifiers) == modifierDiff)
                         {
                             // new mod bits only had 1, which means it lost one,
                             // send key lost 
-                            keyboardHandler.CallHandleKeyboardKeyLost(keyboardHandler._newKeyList, keyboardHandler._newModifiers);
+                            keyboardInput.CallHandleKeyboardKeyLost(keyboardInput._newKeyList, keyboardInput._newModifiers);
                         }
-                        else if ((modifierDiff & keyboardHandler._lastModifiers) == modifierDiff)
+                        else if ((modifierDiff & keyboardInput._lastModifiers) == modifierDiff)
                         {
                             // old mod bits is less, send down event
-                            keyboardHandler._keyboardStateMachine.ChangeState(keyboardHandler._keyboardKeyDownState);
+                            keyboardInput._keyboardStateMachine.ChangeState(keyboardInput._keyboardKeyDownState);
                         }
                         else
                             throw new Exception("code error, unhandled mod key state");
                     }
                     else
-                        keyboardHandler._keyboardStateMachine.ChangeState(keyboardHandler._keyboardKeyDownState);
+                        keyboardInput._keyboardStateMachine.ChangeState(keyboardInput._keyboardKeyDownState);
                 }
 
-                keyboardHandler.UpdateLastKeyListWithNewKeyList();
+                keyboardInput.UpdateLastKeyListWithNewKeyList();
             }
 
-            public override void Exit(KeyboardHandler keyboardHandler)
+            public override void Exit(KeyboardInput keyboardInput)
             {
-                keyboardHandler.UpdateLastKeyListWithNewKeyList();
+                keyboardInput.UpdateLastKeyListWithNewKeyList();
             }
 
-            public override void Reset(KeyboardHandler keyboardHandler)
+            public override void Reset(KeyboardInput keyboardInput)
             {
             }
         }
@@ -474,82 +471,82 @@ namespace InputHandlers.Keyboard
         /// Key repeat state is entered when a key is held down for long enough and nothing else occurs.  A key repeat
         /// event happens every single time a poll occurs if the repeat delay time has been exceeded.
         /// </summary>
-        private sealed class KeyboardKeyRepeatState : State<KeyboardHandler>
+        private sealed class KeyboardKeyRepeatState : State<KeyboardInput>
         {
             private TimeSpan _lastTime;
             private double _repeatRunning = -1.0;
 
-            public override void Enter(KeyboardHandler keyboardHandler)
+            public override void Enter(KeyboardInput keyboardInput)
             {
                 _repeatRunning = -1.0;
             }
 
-            public override void Execute(KeyboardHandler keyboardHandler)
+            public override void Execute(KeyboardInput keyboardInput)
             {
-                keyboardHandler.GetNewKeyListFromKeyboardState();
+                keyboardInput.GetNewKeyListFromKeyboardState();
 
-                if (keyboardHandler._newKeyList.Length == 0)
+                if (keyboardInput._newKeyList.Length == 0)
                 {
-                    keyboardHandler._keyboardStateMachine.ChangeState(keyboardHandler._keyboardUnpressedState);
+                    keyboardInput._keyboardStateMachine.ChangeState(keyboardInput._keyboardUnpressedState);
                     return;
                 }
 
-                if (keyboardHandler.AreKeysLost && keyboardHandler.HasNoAddedKeys)
+                if (keyboardInput.AreKeysLost && keyboardInput.HasNoAddedKeys)
                 {
-                    keyboardHandler._keyboardStateMachine.ChangeState(keyboardHandler._keyboardKeyLostState);
+                    keyboardInput._keyboardStateMachine.ChangeState(keyboardInput._keyboardKeyLostState);
                 }
                 else
                 {
-                    if (keyboardHandler.HasNoAddedKeys)
-                        if (keyboardHandler._newModifiers != keyboardHandler._lastModifiers)
+                    if (keyboardInput.HasNoAddedKeys)
+                        if (keyboardInput._newModifiers != keyboardInput._lastModifiers)
                         {
-                            var modifierDiff = keyboardHandler._newModifiers & keyboardHandler._lastModifiers;
+                            var modifierDiff = keyboardInput._newModifiers & keyboardInput._lastModifiers;
 
-                            keyboardHandler._focusKey = Keys.None;
+                            keyboardInput._focusKey = Keys.None;
 
                             if ((modifierDiff == KeyboardModifier.None)
-                                || ((modifierDiff & keyboardHandler._newModifiers) == (modifierDiff & keyboardHandler._lastModifiers)))
+                                || ((modifierDiff & keyboardInput._newModifiers) == (modifierDiff & keyboardInput._lastModifiers)))
                             {
                                 // had one key the same but other two were different, send keyboard down
-                                keyboardHandler._keyboardStateMachine.ChangeState(keyboardHandler._keyboardKeyDownState);
+                                keyboardInput._keyboardStateMachine.ChangeState(keyboardInput._keyboardKeyDownState);
                             }
-                            else if ((modifierDiff & keyboardHandler._newModifiers) == modifierDiff)
+                            else if ((modifierDiff & keyboardInput._newModifiers) == modifierDiff)
                             {
                                 // new mod bits only had 1, which means it lost one, change to lost state
-                                keyboardHandler._keyboardStateMachine.ChangeState(keyboardHandler._keyboardKeyLostState);
+                                keyboardInput._keyboardStateMachine.ChangeState(keyboardInput._keyboardKeyLostState);
                             }
-                            else if ((modifierDiff & keyboardHandler._lastModifiers) == modifierDiff)
+                            else if ((modifierDiff & keyboardInput._lastModifiers) == modifierDiff)
                             {
                                 // old mod bits is less, send down event
-                                keyboardHandler._keyboardStateMachine.ChangeState(keyboardHandler._keyboardKeyDownState);
+                                keyboardInput._keyboardStateMachine.ChangeState(keyboardInput._keyboardKeyDownState);
                             }
                             else
                                 throw new Exception("code error, unhandled mod key state");
                         }
                         else
                         {
-                            _repeatRunning -= (keyboardHandler.LastPollTime.Elapsed - _lastTime).TotalMilliseconds;
-                            _lastTime = keyboardHandler.LastPollTime.Elapsed;
+                            _repeatRunning -= (keyboardInput.LastPollTime.Elapsed - _lastTime).TotalMilliseconds;
+                            _lastTime = keyboardInput.LastPollTime.Elapsed;
 
                             if (_repeatRunning < 0)
                             {
-                                keyboardHandler.CallHandleKeyboardKeyRepeat(keyboardHandler._focusKey, keyboardHandler._lastModifiers);
-                                _repeatRunning = keyboardHandler._repeatFrequency;
+                                keyboardInput.CallHandleKeyboardKeyRepeat(keyboardInput._focusKey, keyboardInput._lastModifiers);
+                                _repeatRunning = keyboardInput._repeatFrequency;
                             }
                         }
                     else
-                        keyboardHandler._keyboardStateMachine.ChangeState(keyboardHandler._keyboardKeyDownState);
+                        keyboardInput._keyboardStateMachine.ChangeState(keyboardInput._keyboardKeyDownState);
                 }
 
-                keyboardHandler.UpdateLastKeyListWithNewKeyList();
+                keyboardInput.UpdateLastKeyListWithNewKeyList();
             }
 
-            public override void Exit(KeyboardHandler keyboardHandler)
+            public override void Exit(KeyboardInput keyboardInput)
             {
-                keyboardHandler.UpdateLastKeyListWithNewKeyList();
+                keyboardInput.UpdateLastKeyListWithNewKeyList();
             }
 
-            public override void Reset(KeyboardHandler keyboardHandler)
+            public override void Reset(KeyboardInput keyboardInput)
             {
             }
         }

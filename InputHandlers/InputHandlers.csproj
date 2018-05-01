@@ -45,8 +45,8 @@
   <ItemGroup>
     <Compile Include="IKeyboardHandler.cs" />
     <Compile Include="IMouseHandler.cs" />
-    <Compile Include="KeyboardHandler.cs" />
-    <Compile Include="MouseHandler.cs" />
+    <Compile Include="KeyboardInput.cs" />
+    <Compile Include="MouseInput.cs" />
     <Compile Include="KeysExtensions.cs" />
     <Compile Include="KeyboardModifier.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

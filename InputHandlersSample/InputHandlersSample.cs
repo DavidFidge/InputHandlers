@@ -13,8 +13,8 @@ namespace InputHandlersSample
     {
         private const int _screenWidth = 1400;
         private const int _screenHeight = 700;
-        private KeyboardHandler _keyboard;
-        private MouseHandler _mouse;
+        private KeyboardInput _keyboard;
+        private MouseInput _mouse;
         private SpriteFont _arialfont;
         private readonly GraphicsDeviceManager _graphics;
         private InputHandler _inputHandler;
@@ -34,8 +34,8 @@ namespace InputHandlersSample
 
         protected override void Initialize()
         {
-            _mouse = new MouseHandler();
-            _keyboard = new KeyboardHandler();
+            _mouse = new MouseInput();
+            _keyboard = new KeyboardInput();
 
             // You may want to assign keys that are unmanaged by the handler.  For example, you might want to handle the ASDW keys yourself in a fps game.  Try uncommenting the following and notice how nothing will happen when you press the keys:
             // _keyboard.UnmanagedKeys.Add(Keys.A);

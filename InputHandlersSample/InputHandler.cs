@@ -194,10 +194,10 @@ namespace InputHandlersSample
             _keyboardLabels[KeyboardLabelTypes.KeyRepeat].Deactivate();
         }
 
-        public void UpdateLabelsAfterPoll(GameTime gameTime, MouseHandler mouseHandler, KeyboardHandler keyboardHandler)
+        public void UpdateLabelsAfterPoll(GameTime gameTime, MouseInput mouseInput, KeyboardInput keyboardInput)
         {
-            _mouseLabels[MouseLabelTypes.CurrentState].Text = "current state: " + mouseHandler.CurrentStateAsString();
-            _keyboardLabels[KeyboardLabelTypes.CurrentState].Text = "current state: " + keyboardHandler.GetCurrentStateTypeName();
+            _mouseLabels[MouseLabelTypes.CurrentState].Text = "current state: " + mouseInput.CurrentStateAsString();
+            _keyboardLabels[KeyboardLabelTypes.CurrentState].Text = "current state: " + keyboardInput.GetCurrentStateTypeName();
 
             foreach (var sl in _mouseLabels.Values)
                 sl.Update(gameTime, _realTimer);

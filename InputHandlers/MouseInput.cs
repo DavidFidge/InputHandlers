@@ -10,9 +10,9 @@ using Microsoft.Xna.Framework.Input;
 
 namespace InputHandlers.Mouse
 {
-    public class MouseHandler
+    public class MouseInput
     {
-        private readonly StateMachine<MouseHandler> _mouseStateMachine;
+        private readonly StateMachine<MouseInput> _mouseStateMachine;
         private readonly MouseStationaryState _mouseStationaryState;
         private readonly MouseMovingState _mouseMovingState;
         private readonly MouseLeftDownState _mouseLeftDownState;
@@ -43,10 +43,7 @@ namespace InputHandlers.Mouse
         /// </summary>
         public uint UpdateNumber { get; private set; }
 
-        /// <summary>
-        /// Create mouse handler object and initialise state to stationary
-        /// </summary>
-        public MouseHandler()
+        public MouseInput()
         {
             _mouseHandlers = new List<IMouseHandler>();
             _mouseStationaryState = new MouseStationaryState();
@@ -58,7 +55,7 @@ namespace InputHandlers.Mouse
             LastPollTime = new Stopwatch();
             LastPollTime.Start();
             UpdateNumber = 0;
-            _mouseStateMachine = new StateMachine<MouseHandler>(this);
+            _mouseStateMachine = new StateMachine<MouseInput>(this);
             _mouseStateMachine.SetCurrentState(_mouseStationaryState);
             _mouseStateMachine.SetPreviousState(_mouseStationaryState);
             DragVariance = 10;
@@ -240,39 +237,39 @@ namespace InputHandlers.Mouse
                    (Math.Abs(DragOriginPosition.Y - CurrentMouseState.Y) > DragVariance);
         }
 
-        private sealed class MouseStationaryState : State<MouseHandler>
+        private sealed class MouseStationaryState : State<MouseInput>
         {
-            public override void Enter(MouseHandler mouseHandler)
+            public override void Enter(MouseInput mouseInput)
             {
             }
 
-            public override void Execute(MouseHandler mouseHandler)
+            public override void Execute(MouseInput mouseInput)
             {
-                if (mouseHandler.CurrentMouseState.LeftButton == ButtonState.Pressed)
-                    mouseHandler._mouseStateMachine.ChangeState(mouseHandler._mouseLeftDownState);
-                else if (mouseHandler.CurrentMouseState.RightButton == ButtonState.Pressed)
-                    mouseHandler._mouseStateMachine.ChangeState(mouseHandler._mouseRightDownState);
-                else if ((mouseHandler.CurrentMouseState.X != mouseHandler.OldMouseState.X) || (mouseHandler.CurrentMouseState.Y != mouseHandler.OldMouseState.Y))
-                    mouseHandler._mouseStateMachine.ChangeState(mouseHandler._mouseMovingState);
+                if (mouseInput.CurrentMouseState.LeftButton == ButtonState.Pressed)
+                    mouseInput._mouseStateMachine.ChangeState(mouseInput._mouseLeftDownState);
+                else if (mouseInput.CurrentMouseState.RightButton == ButtonState.Pressed)
+                    mouseInput._mouseStateMachine.ChangeState(mouseInput._mouseRightDownState);
+                else if ((mouseInput.CurrentMouseState.X != mouseInput.OldMouseState.X) || (mouseInput.CurrentMouseState.Y != mouseInput.OldMouseState.Y))
+                    mouseInput._mouseStateMachine.ChangeState(mouseInput._mouseMovingState);
             }
 
-            public override void Exit(MouseHandler mouseHandler)
+            public override void Exit(MouseInput mouseInput)
             {
             }
 
-            public override void Reset(MouseHandler mouseHandler)
+            public override void Reset(MouseInput mouseInput)
             {
             }
         }
 
-        private sealed class MouseMovingState : State<MouseHandler>
+        private sealed class MouseMovingState : State<MouseInput>
         {
-            public override void Enter(MouseHandler mouseHandler)
+            public override void Enter(MouseInput mouseInput)
             {
-                mouseHandler.CallHandleMouseMoving(mouseHandler.CurrentMouseState);
+                mouseInput.CallHandleMouseMoving(mouseInput.CurrentMouseState);
             }
 
-            public override void Execute(MouseHandler e)
+            public override void Execute(MouseInput e)
             {
                 if (e.CurrentMouseState.LeftButton == ButtonState.Pressed)
                     e._mouseStateMachine.ChangeState(e._mouseLeftDownState);
@@ -284,16 +281,16 @@ namespace InputHandlers.Mouse
                     e.CallHandleMouseMoving(e.CurrentMouseState);
             }
 
-            public override void Exit(MouseHandler mouseHandler)
+            public override void Exit(MouseInput mouseInput)
             {
             }
 
-            public override void Reset(MouseHandler mouseHandler)
+            public override void Reset(MouseInput mouseInput)
             {
             }
         }
 
-        private sealed class MouseLeftDownState : State<MouseHandler>
+        private sealed class MouseLeftDownState : State<MouseInput>
         {
             private double _detectDoubleClickTime;
             private bool _wasDoubleClickDone;
@@ -304,22 +301,22 @@ namespace InputHandlers.Mouse
                 _wasDoubleClickDone = false;
             }
 
-            public override void Enter(MouseHandler mouseHandler)
+            public override void Enter(MouseInput mouseInput)
             {
-                mouseHandler.DragOriginPosition = mouseHandler.CurrentMouseState;
+                mouseInput.DragOriginPosition = mouseInput.CurrentMouseState;
 
                 if (double.IsNegativeInfinity(_detectDoubleClickTime))
                 {
-                    _detectDoubleClickTime = mouseHandler.LastPollTime.Elapsed.TotalMilliseconds;
-                    mouseHandler.CallHandleLeftMouseDown(mouseHandler.CurrentMouseState);
+                    _detectDoubleClickTime = mouseInput.LastPollTime.Elapsed.TotalMilliseconds;
+                    mouseInput.CallHandleLeftMouseDown(mouseInput.CurrentMouseState);
                 }
                 else
                 {
-                    _detectDoubleClickTime -= mouseHandler.LastPollTime.Elapsed.TotalMilliseconds;
+                    _detectDoubleClickTime -= mouseInput.LastPollTime.Elapsed.TotalMilliseconds;
 
-                    if (_detectDoubleClickTime >= -mouseHandler.DoubleClickDetectionTimeDelay)
+                    if (_detectDoubleClickTime >= -mouseInput.DoubleClickDetectionTimeDelay)
                     {
-                        mouseHandler.CallHandleLeftMouseDoubleClick(mouseHandler.DragOriginPosition);
+                        mouseInput.CallHandleLeftMouseDoubleClick(mouseInput.DragOriginPosition);
 
                         _detectDoubleClickTime = double.NegativeInfinity;
 
@@ -327,76 +324,76 @@ namespace InputHandlers.Mouse
                     }
                     else
                     {
-                        _detectDoubleClickTime = mouseHandler.LastPollTime.Elapsed.TotalMilliseconds;
-                        mouseHandler.CallHandleLeftMouseDown(mouseHandler.CurrentMouseState);
+                        _detectDoubleClickTime = mouseInput.LastPollTime.Elapsed.TotalMilliseconds;
+                        mouseInput.CallHandleLeftMouseDown(mouseInput.CurrentMouseState);
                     }
                 }
             }
 
-            public override void Execute(MouseHandler mouseHandler)
+            public override void Execute(MouseInput mouseInput)
             {
                 if (_wasDoubleClickDone)
                 {
-                    if (mouseHandler.CurrentMouseState.LeftButton == ButtonState.Released)
+                    if (mouseInput.CurrentMouseState.LeftButton == ButtonState.Released)
                     {
                         _wasDoubleClickDone = false;
-                        mouseHandler._mouseStateMachine.ChangeState(mouseHandler._mouseStationaryState);
+                        mouseInput._mouseStateMachine.ChangeState(mouseInput._mouseStationaryState);
                     }
                 }
-                else if (mouseHandler.CurrentMouseState.LeftButton == ButtonState.Released)
+                else if (mouseInput.CurrentMouseState.LeftButton == ButtonState.Released)
                 {
-                    mouseHandler.CallHandleLeftMouseUp(mouseHandler.DragOriginPosition);
-                    mouseHandler.CallHandleLeftMouseClick(mouseHandler.DragOriginPosition);
-                    mouseHandler._mouseStateMachine.ChangeState(mouseHandler._mouseStationaryState);
+                    mouseInput.CallHandleLeftMouseUp(mouseInput.DragOriginPosition);
+                    mouseInput.CallHandleLeftMouseClick(mouseInput.DragOriginPosition);
+                    mouseInput._mouseStateMachine.ChangeState(mouseInput._mouseStationaryState);
                 }
-                else if (mouseHandler.IsStartingDragDrop())
+                else if (mouseInput.IsStartingDragDrop())
                 {
-                    mouseHandler._mouseStateMachine.ChangeState(mouseHandler._mouseLeftDraggingState);
+                    mouseInput._mouseStateMachine.ChangeState(mouseInput._mouseLeftDraggingState);
                 }
             }
 
-            public override void Exit(MouseHandler mouseHandler)
+            public override void Exit(MouseInput mouseInput)
             {
             }
 
-            public override void Reset(MouseHandler mouseHandler)
+            public override void Reset(MouseInput mouseInput)
             {
                 _detectDoubleClickTime = double.NegativeInfinity;
                 _wasDoubleClickDone = false;
             }
         }
 
-        private sealed class MouseLeftDraggingState : State<MouseHandler>
+        private sealed class MouseLeftDraggingState : State<MouseInput>
         {
-            public override void Enter(MouseHandler mouseHandler)
+            public override void Enter(MouseInput mouseInput)
             {
-                mouseHandler.CallHandleLeftMouseDragging(mouseHandler.CurrentMouseState, mouseHandler.DragOriginPosition);
+                mouseInput.CallHandleLeftMouseDragging(mouseInput.CurrentMouseState, mouseInput.DragOriginPosition);
             }
 
-            public override void Execute(MouseHandler mouseHandler)
+            public override void Execute(MouseInput mouseInput)
             {
-                if (mouseHandler.CurrentMouseState.LeftButton == ButtonState.Released)
+                if (mouseInput.CurrentMouseState.LeftButton == ButtonState.Released)
                 {
-                    mouseHandler.CallHandleLeftMouseUp(mouseHandler.CurrentMouseState);
-                    mouseHandler.CallHandleLeftMouseDragDone(mouseHandler.CurrentMouseState, mouseHandler.DragOriginPosition);
-                    mouseHandler._mouseStateMachine.ChangeState(mouseHandler._mouseStationaryState);
+                    mouseInput.CallHandleLeftMouseUp(mouseInput.CurrentMouseState);
+                    mouseInput.CallHandleLeftMouseDragDone(mouseInput.CurrentMouseState, mouseInput.DragOriginPosition);
+                    mouseInput._mouseStateMachine.ChangeState(mouseInput._mouseStationaryState);
                 }
-                else if ((mouseHandler.CurrentMouseState.X != mouseHandler.OldMouseState.X) || (mouseHandler.CurrentMouseState.Y != mouseHandler.OldMouseState.Y))
+                else if ((mouseInput.CurrentMouseState.X != mouseInput.OldMouseState.X) || (mouseInput.CurrentMouseState.Y != mouseInput.OldMouseState.Y))
                 {
-                    mouseHandler.CallHandleLeftMouseDragging(mouseHandler.CurrentMouseState, mouseHandler.DragOriginPosition);
+                    mouseInput.CallHandleLeftMouseDragging(mouseInput.CurrentMouseState, mouseInput.DragOriginPosition);
                 }
             }
 
-            public override void Exit(MouseHandler mouseHandler)
+            public override void Exit(MouseInput mouseInput)
             {
             }
 
-            public override void Reset(MouseHandler mouseHandler)
+            public override void Reset(MouseInput mouseInput)
             {
             }
         }
 
-        private sealed class MouseRightDownState : State<MouseHandler>
+        private sealed class MouseRightDownState : State<MouseInput>
         {
             private double _detectDoubleClickTime;
             private bool _wasDoubleClickDone;
@@ -407,23 +404,23 @@ namespace InputHandlers.Mouse
                 _wasDoubleClickDone = false;
             }
 
-            public override void Enter(MouseHandler mouseHandler)
+            public override void Enter(MouseInput mouseInput)
             {
-                mouseHandler.DragOriginPosition = mouseHandler.CurrentMouseState;
+                mouseInput.DragOriginPosition = mouseInput.CurrentMouseState;
 
                 if (double.IsNegativeInfinity(_detectDoubleClickTime))
                 {
-                    _detectDoubleClickTime = mouseHandler.LastPollTime.Elapsed.TotalMilliseconds;
+                    _detectDoubleClickTime = mouseInput.LastPollTime.Elapsed.TotalMilliseconds;
                     
-                    mouseHandler.CallHandleRightMouseDown(mouseHandler.CurrentMouseState);
+                    mouseInput.CallHandleRightMouseDown(mouseInput.CurrentMouseState);
                 }
                 else
                 {
-                    _detectDoubleClickTime -= mouseHandler.LastPollTime.Elapsed.TotalMilliseconds;
+                    _detectDoubleClickTime -= mouseInput.LastPollTime.Elapsed.TotalMilliseconds;
 
-                    if (_detectDoubleClickTime >= -mouseHandler.DoubleClickDetectionTimeDelay)
+                    if (_detectDoubleClickTime >= -mouseInput.DoubleClickDetectionTimeDelay)
                     {
-                        mouseHandler.CallHandleRightMouseDoubleClick(mouseHandler.DragOriginPosition);
+                        mouseInput.CallHandleRightMouseDoubleClick(mouseInput.DragOriginPosition);
 
                         _detectDoubleClickTime = double.NegativeInfinity;
 
@@ -431,71 +428,71 @@ namespace InputHandlers.Mouse
                     }
                     else
                     {
-                        _detectDoubleClickTime = mouseHandler.LastPollTime.Elapsed.TotalMilliseconds;
-                        mouseHandler.CallHandleRightMouseDown(mouseHandler.CurrentMouseState);
+                        _detectDoubleClickTime = mouseInput.LastPollTime.Elapsed.TotalMilliseconds;
+                        mouseInput.CallHandleRightMouseDown(mouseInput.CurrentMouseState);
                     }
                 }
             }
 
-            public override void Execute(MouseHandler mouseHandler)
+            public override void Execute(MouseInput mouseInput)
             {
                 if (_wasDoubleClickDone)
                 {
-                    if (mouseHandler.CurrentMouseState.RightButton == ButtonState.Released)
+                    if (mouseInput.CurrentMouseState.RightButton == ButtonState.Released)
                     {
                         _wasDoubleClickDone = false;
-                        mouseHandler._mouseStateMachine.ChangeState(mouseHandler._mouseStationaryState);
+                        mouseInput._mouseStateMachine.ChangeState(mouseInput._mouseStationaryState);
                     }
                 }
-                else if (mouseHandler.CurrentMouseState.RightButton == ButtonState.Released)
+                else if (mouseInput.CurrentMouseState.RightButton == ButtonState.Released)
                 {
-                    mouseHandler.CallHandleRightMouseUp(mouseHandler.DragOriginPosition);
-                    mouseHandler.CallHandleRightMouseClick(mouseHandler.DragOriginPosition);
-                    mouseHandler._mouseStateMachine.ChangeState(mouseHandler._mouseStationaryState);
+                    mouseInput.CallHandleRightMouseUp(mouseInput.DragOriginPosition);
+                    mouseInput.CallHandleRightMouseClick(mouseInput.DragOriginPosition);
+                    mouseInput._mouseStateMachine.ChangeState(mouseInput._mouseStationaryState);
                 }
-                else if (mouseHandler.IsStartingDragDrop())
+                else if (mouseInput.IsStartingDragDrop())
                 {
-                    mouseHandler._mouseStateMachine.ChangeState(mouseHandler._mouseRightDraggingState);
+                    mouseInput._mouseStateMachine.ChangeState(mouseInput._mouseRightDraggingState);
                 }
             }
 
-            public override void Exit(MouseHandler mouseHandler)
+            public override void Exit(MouseInput mouseInput)
             {
             }
 
-            public override void Reset(MouseHandler mouseHandler)
+            public override void Reset(MouseInput mouseInput)
             {
                 _detectDoubleClickTime = double.NegativeInfinity;
                 _wasDoubleClickDone = false;
             }
         }
 
-        private sealed class MouseRightDraggingState : State<MouseHandler>
+        private sealed class MouseRightDraggingState : State<MouseInput>
         {
-            public override void Enter(MouseHandler mouseHandler)
+            public override void Enter(MouseInput mouseInput)
             {
-                mouseHandler.CallHandleRightMouseDragging(mouseHandler.CurrentMouseState, mouseHandler.DragOriginPosition);
+                mouseInput.CallHandleRightMouseDragging(mouseInput.CurrentMouseState, mouseInput.DragOriginPosition);
             }
 
-            public override void Execute(MouseHandler mouseHandler)
+            public override void Execute(MouseInput mouseInput)
             {
-                if (mouseHandler.CurrentMouseState.RightButton == ButtonState.Released)
+                if (mouseInput.CurrentMouseState.RightButton == ButtonState.Released)
                 {
-                    mouseHandler.CallHandleRightMouseUp(mouseHandler.CurrentMouseState);
-                    mouseHandler.CallHandleRightMouseDragDone(mouseHandler.CurrentMouseState, mouseHandler.DragOriginPosition);
-                    mouseHandler._mouseStateMachine.ChangeState(mouseHandler._mouseStationaryState);
+                    mouseInput.CallHandleRightMouseUp(mouseInput.CurrentMouseState);
+                    mouseInput.CallHandleRightMouseDragDone(mouseInput.CurrentMouseState, mouseInput.DragOriginPosition);
+                    mouseInput._mouseStateMachine.ChangeState(mouseInput._mouseStationaryState);
                 }
-                else if (((mouseHandler.CurrentMouseState.X != mouseHandler.OldMouseState.X) || (mouseHandler.CurrentMouseState.Y != mouseHandler.OldMouseState.Y)))
+                else if (((mouseInput.CurrentMouseState.X != mouseInput.OldMouseState.X) || (mouseInput.CurrentMouseState.Y != mouseInput.OldMouseState.Y)))
                 {
-                    mouseHandler.CallHandleRightMouseDragging(mouseHandler.CurrentMouseState, mouseHandler.DragOriginPosition);
+                    mouseInput.CallHandleRightMouseDragging(mouseInput.CurrentMouseState, mouseInput.DragOriginPosition);
                 }
             }
 
-            public override void Exit(MouseHandler mouseHandler)
+            public override void Exit(MouseInput mouseInput)
             {
             }
 
-            public override void Reset(MouseHandler mouseHandler)
+            public override void Reset(MouseInput mouseInput)
             {
             }
         }
