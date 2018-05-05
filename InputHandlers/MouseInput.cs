@@ -24,26 +24,30 @@ namespace InputHandlers.Mouse
         public MouseState OldMouseState { get; private set; }
         public MouseState CurrentMouseState { get; private set; }
         public MouseState DragOriginPosition { get; private set; }
-        public Stopwatch LastPollTime { get; private set; }
+        public IStopwatchProvider StopwatchProvider { get; private set; }
 
         /// <summary>
         /// DragVariance is a fudging factor for detecting the difference between mouse clicks and mouse drags.
         /// This is because a fast user may do a mouse click while slightly moving the mouse between mouse down and mouse up.
         /// If it wasnt for this fudging factor then it would go into drag mode which isnt what the user probably wanted.
         /// </summary>
-        public uint DragVariance { get; set; }
+        public int DragVariance { get; set; }
 
         /// <summary>
         /// If time between clicks in milliseconds is less than this value then it is considered a double click
         /// </summary>
-        public uint DoubleClickDetectionTimeDelay { get; set; }
+        public int DoubleClickDetectionTimeDelay { get; set; }
 
         /// <summary>
         /// This is incremented on each update.  This can be used to determine whether a sequence of events have occurred within the same update time. 
         /// </summary>
-        public uint UpdateNumber { get; private set; }
+        public int UpdateNumber { get; private set; }
 
-        public MouseInput()
+        public MouseInput() : this(new StopwatchProvider())
+        {
+        }
+
+        public MouseInput(IStopwatchProvider stopwatchProvider)
         {
             _mouseHandlers = new List<IMouseHandler>();
             _mouseStationaryState = new MouseStationaryState();
@@ -52,14 +56,17 @@ namespace InputHandlers.Mouse
             _mouseLeftDraggingState = new MouseLeftDraggingState();
             _mouseRightDownState = new MouseRightDownState();
             _mouseRightDraggingState = new MouseRightDraggingState();
-            LastPollTime = new Stopwatch();
-            LastPollTime.Start();
+
             UpdateNumber = 0;
+            DragVariance = 10;
+            DoubleClickDetectionTimeDelay = 400;
+
+            StopwatchProvider = stopwatchProvider;
+            StopwatchProvider.Start();
+
             _mouseStateMachine = new StateMachine<MouseInput>(this);
             _mouseStateMachine.SetCurrentState(_mouseStationaryState);
             _mouseStateMachine.SetPreviousState(_mouseStationaryState);
-            DragVariance = 10;
-            DoubleClickDetectionTimeDelay = 400;
         }
 
         public void Subscribe(IMouseHandler mouseHandler)
@@ -194,7 +201,7 @@ namespace InputHandlers.Mouse
         {
             UpdateNumber++;
 
-            if (UpdateNumber == uint.MaxValue)
+            if (UpdateNumber == int.MaxValue)
                 UpdateNumber = 0;
 
             OldMouseState = CurrentMouseState;
@@ -210,8 +217,9 @@ namespace InputHandlers.Mouse
         /// </summary>
         public void Reset()
         {
-            LastPollTime = new Stopwatch();
-            LastPollTime.Start();
+            StopwatchProvider.Stop();
+            StopwatchProvider.Reset();
+            StopwatchProvider.Start();
             UpdateNumber = 0;
             _mouseStateMachine.CurrentState.Reset(this);
             _mouseStateMachine.SetCurrentState(_mouseStationaryState);
@@ -307,12 +315,12 @@ namespace InputHandlers.Mouse
 
                 if (double.IsNegativeInfinity(_detectDoubleClickTime))
                 {
-                    _detectDoubleClickTime = mouseInput.LastPollTime.Elapsed.TotalMilliseconds;
+                    _detectDoubleClickTime = mouseInput.StopwatchProvider.Elapsed.TotalMilliseconds;
                     mouseInput.CallHandleLeftMouseDown(mouseInput.CurrentMouseState);
                 }
                 else
                 {
-                    _detectDoubleClickTime -= mouseInput.LastPollTime.Elapsed.TotalMilliseconds;
+                    _detectDoubleClickTime -= mouseInput.StopwatchProvider.Elapsed.TotalMilliseconds;
 
                     if (_detectDoubleClickTime >= -mouseInput.DoubleClickDetectionTimeDelay)
                     {
@@ -324,7 +332,7 @@ namespace InputHandlers.Mouse
                     }
                     else
                     {
-                        _detectDoubleClickTime = mouseInput.LastPollTime.Elapsed.TotalMilliseconds;
+                        _detectDoubleClickTime = mouseInput.StopwatchProvider.Elapsed.TotalMilliseconds;
                         mouseInput.CallHandleLeftMouseDown(mouseInput.CurrentMouseState);
                     }
                 }
@@ -410,13 +418,13 @@ namespace InputHandlers.Mouse
 
                 if (double.IsNegativeInfinity(_detectDoubleClickTime))
                 {
-                    _detectDoubleClickTime = mouseInput.LastPollTime.Elapsed.TotalMilliseconds;
+                    _detectDoubleClickTime = mouseInput.StopwatchProvider.Elapsed.TotalMilliseconds;
                     
                     mouseInput.CallHandleRightMouseDown(mouseInput.CurrentMouseState);
                 }
                 else
                 {
-                    _detectDoubleClickTime -= mouseInput.LastPollTime.Elapsed.TotalMilliseconds;
+                    _detectDoubleClickTime -= mouseInput.StopwatchProvider.Elapsed.TotalMilliseconds;
 
                     if (_detectDoubleClickTime >= -mouseInput.DoubleClickDetectionTimeDelay)
                     {
@@ -428,7 +436,7 @@ namespace InputHandlers.Mouse
                     }
                     else
                     {
-                        _detectDoubleClickTime = mouseInput.LastPollTime.Elapsed.TotalMilliseconds;
+                        _detectDoubleClickTime = mouseInput.StopwatchProvider.Elapsed.TotalMilliseconds;
                         mouseInput.CallHandleRightMouseDown(mouseInput.CurrentMouseState);
                     }
                 }

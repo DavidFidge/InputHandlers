@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System;
-using System.Diagnostics;
 using System.Linq;
 
 using InputHandlers.State;
@@ -33,12 +32,12 @@ namespace InputHandlers.Keyboard
         public KeyboardState CurrentKeyboardState { get; private set; }
 
         public List<Keys> UnmanagedKeys { get; }
-        public Stopwatch LastPollTime { get; private set; }
+        public IStopwatchProvider StopwatchProvider { get; private set; }
 
         /// <summary>
         /// This is incremented on each update.  This can be used to determine whether a sequence of events have occurred within the same update time. 
         /// </summary>
-        public uint UpdateNumber { get; private set; }
+        public int UpdateNumber { get; private set; }
 
         /// <summary>
         /// Sets time delay in milliseconds to wait for a key being held down until it repeats
@@ -71,24 +70,29 @@ namespace InputHandlers.Keyboard
         /// </summary>
         public bool TreatModifiersAsKeys { get; set; }
 
-        public KeyboardInput()
+        public KeyboardInput() : this(new StopwatchProvider())
+        {
+        }
+
+        public KeyboardInput(IStopwatchProvider stopwatchProvider)
         {
             _keyboardHandlers = new List<IKeyboardHandler>();
-
-            LastPollTime = new Stopwatch();
-            LastPollTime.Start();
-            UpdateNumber = 0;
-            _newlyFoundKeys = new List<Keys>(0);
 
             _keyboardUnpressedState = new KeyboardUnpressedState();
             _keyboardKeyDownState = new KeyboardKeyDownState();
             _keyboardKeyLostState = new KeyboardKeyLostState();
             _keyboardKeyRepeatState = new KeyboardKeyRepeatState();
 
+            UpdateNumber = 0;
+            _newlyFoundKeys = new List<Keys>(0);
+            UnmanagedKeys = new List<Keys>(0);
+
+            StopwatchProvider = stopwatchProvider;
+            StopwatchProvider.Start();
+
             _keyboardStateMachine = new StateMachine<KeyboardInput>(this);
             _keyboardStateMachine.SetCurrentState(_keyboardUnpressedState);
             _keyboardStateMachine.SetPreviousState(_keyboardUnpressedState);
-            UnmanagedKeys = new List<Keys>(0);
         }
 
         public void Subscribe(IKeyboardHandler keyboardHandler)
@@ -143,7 +147,7 @@ namespace InputHandlers.Keyboard
         {
             UpdateNumber++;
 
-            if (UpdateNumber == uint.MaxValue)
+            if (UpdateNumber == int.MaxValue)
                 UpdateNumber = 0;
 
             OldKeyboardState = CurrentKeyboardState;
@@ -156,8 +160,9 @@ namespace InputHandlers.Keyboard
         /// </summary>
         public void Reset()
         {
-            LastPollTime = new Stopwatch();
-            LastPollTime.Start();
+            StopwatchProvider.Stop();
+            StopwatchProvider.Reset();
+            StopwatchProvider.Start();
 
             _newlyFoundKeys.Clear();
 
@@ -290,7 +295,7 @@ namespace InputHandlers.Keyboard
 
             public override void Enter(KeyboardInput keyboardInput)
             {
-                _elapsedTimeSinceKeysChanged = _elapsedTimeSinceKeysChanged = keyboardInput.LastPollTime.Elapsed;
+                _elapsedTimeSinceKeysChanged = _elapsedTimeSinceKeysChanged = keyboardInput.StopwatchProvider.Elapsed;
 
                 if (keyboardInput._keyboardStateMachine.PreviousState == keyboardInput._keyboardUnpressedState)
                 {
@@ -342,7 +347,7 @@ namespace InputHandlers.Keyboard
 
                             keyboardInput._focusKey = Keys.None;
 
-                            _elapsedTimeSinceKeysChanged = keyboardInput.LastPollTime.Elapsed;
+                            _elapsedTimeSinceKeysChanged = keyboardInput.StopwatchProvider.Elapsed;
 
                             if (modifierDiff == KeyboardModifier.None
                                 || (modifierDiff & keyboardInput._newModifiers) == (modifierDiff & keyboardInput._lastModifiers))
@@ -364,7 +369,7 @@ namespace InputHandlers.Keyboard
                                 throw new Exception("code error, unhandled mod key state");
                         }
                         else if (keyboardInput._focusKey != Keys.None
-                                 && (keyboardInput.LastPollTime.Elapsed.TotalMilliseconds - _elapsedTimeSinceKeysChanged.TotalMilliseconds >
+                                 && (keyboardInput.StopwatchProvider.Elapsed.TotalMilliseconds - _elapsedTimeSinceKeysChanged.TotalMilliseconds >
                                      keyboardInput._repeatDelay))
                         {
                             keyboardInput._keyboardStateMachine.ChangeState(keyboardInput._keyboardKeyRepeatState);
@@ -375,7 +380,7 @@ namespace InputHandlers.Keyboard
                         {
                             keyboardInput.CallHandleKeyboardKeyDown(keyboardInput._newKeyList, newkey, keyboardInput._newModifiers);
                             keyboardInput._focusKey = newkey;
-                            _elapsedTimeSinceKeysChanged = keyboardInput.LastPollTime.Elapsed;
+                            _elapsedTimeSinceKeysChanged = keyboardInput.StopwatchProvider.Elapsed;
                         }
                 }
                 
@@ -525,8 +530,8 @@ namespace InputHandlers.Keyboard
                         }
                         else
                         {
-                            _repeatRunning -= (keyboardInput.LastPollTime.Elapsed - _lastTime).TotalMilliseconds;
-                            _lastTime = keyboardInput.LastPollTime.Elapsed;
+                            _repeatRunning -= (keyboardInput.StopwatchProvider.Elapsed - _lastTime).TotalMilliseconds;
+                            _lastTime = keyboardInput.StopwatchProvider.Elapsed;
 
                             if (_repeatRunning < 0)
                             {

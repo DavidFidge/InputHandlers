@@ -1,13 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+
 using InputHandlers.Keyboard;
 using InputHandlers.Mouse;
+
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
 
-namespace InputHandlersSample
+namespace InputHandlers.Sample
 {
     public class InputHandlersSample : Game
     {
@@ -37,11 +38,15 @@ namespace InputHandlersSample
             _mouse = new MouseInput();
             _keyboard = new KeyboardInput();
 
-            // You may want to assign keys that are unmanaged by the handler.  For example, you might want to handle the ASDW keys yourself in a fps game.  Try uncommenting the following and notice how nothing will happen when you press the keys:
+            // You may want to assign keys that are unmanaged by the handler.  For example, you might want to handle the ASDW keys yourself in a fps game.
+            // Try uncommenting the following and notice how nothing will happen when you press the keys:
             // _keyboard.UnmanagedKeys.Add(Keys.A);
             // _keyboard.UnmanagedKeys.Add(Keys.S);
             // _keyboard.UnmanagedKeys.Add(Keys.D);
             // _keyboard.UnmanagedKeys.Add(Keys.W);
+
+            // You may want to treat control, alt and delete as keys rather than modifier keys.  Try uncommenting the following line to see this behaviour:
+            // _keyboard.TreatModifiersAsKeys = true;
 
             _inputHandler = new InputHandler();
             _inputHandler.Initialise();
@@ -64,8 +69,8 @@ namespace InputHandlersSample
         {
             _inputHandler.UpdateLabelsBeforePoll();
 
-            _mouse.Poll(Mouse.GetState());
-            _keyboard.Poll(Keyboard.GetState());
+            _mouse.Poll(Microsoft.Xna.Framework.Input.Mouse.GetState());
+            _keyboard.Poll(Microsoft.Xna.Framework.Input.Keyboard.GetState());
 
             _inputHandler.UpdateLabelsAfterPoll(gameTime, _mouse, _keyboard);
 

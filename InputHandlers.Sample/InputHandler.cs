@@ -10,7 +10,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
-namespace InputHandlersSample
+namespace InputHandlers.Sample
 {
     public class InputHandler : IMouseHandler, IKeyboardHandler
     {
@@ -70,8 +70,8 @@ namespace InputHandlersSample
         public void HandleKeyboardKeysReleased()
         {
             _keyboardLabels[KeyboardLabelTypes.KeysReleased].HighlightRed(_realTimer);
-            _keyboardLabels[KeyboardLabelTypes.RunningKeys].Text = "running keys: ";
-            _keyboardLabels[KeyboardLabelTypes.Example].Text = "no keys down";
+            _keyboardLabels[KeyboardLabelTypes.RunningKeys].Text = "Running Keys: ";
+            _keyboardLabels[KeyboardLabelTypes.Example].Text = "No Keys Down";
         }
 
         public void HandleMouseScrollWheelMove(MouseState mouseState, int difference)
@@ -161,31 +161,31 @@ namespace InputHandlersSample
             var currentPosition = new Vector2(400.0f, 30.0f);
             var gap = new Vector2(0.0f, 30.0f);
 
-            _keyboardLabels.Add(KeyboardLabelTypes.CurrentState, new SimpleLabel(currentPosition += gap, "currentstate: "));
-            _keyboardLabels.Add(KeyboardLabelTypes.KeyDown, new SimpleLabel(currentPosition += gap, "kbkeydown fired"));
-            _keyboardLabels.Add(KeyboardLabelTypes.KeyLost, new SimpleLabel(currentPosition += gap, "kbkeylost fired"));
-            _keyboardLabels.Add(KeyboardLabelTypes.KeyRepeat, new SimpleLabel(currentPosition += gap, "kbkeyrepeat fired"));
-            _keyboardLabels.Add(KeyboardLabelTypes.KeysReleased, new SimpleLabel(currentPosition += gap, "kbkeysreleased fired"));
-            _keyboardLabels.Add(KeyboardLabelTypes.RunningKeys, new SimpleLabel(currentPosition += gap, "running keys: "));
-            _keyboardLabels.Add(KeyboardLabelTypes.Example, new SimpleLabel(currentPosition += gap, "textbox text example: "));
+            _keyboardLabels.Add(KeyboardLabelTypes.CurrentState, new SimpleLabel(currentPosition += gap, "Current State: "));
+            _keyboardLabels.Add(KeyboardLabelTypes.KeyDown, new SimpleLabel(currentPosition += gap, "HandleKeyboardKeyDown Fired"));
+            _keyboardLabels.Add(KeyboardLabelTypes.KeyLost, new SimpleLabel(currentPosition += gap, "HandleKeyboardKeyLost Fired"));
+            _keyboardLabels.Add(KeyboardLabelTypes.KeyRepeat, new SimpleLabel(currentPosition += gap, "HandleKeyboardKeyRepeat Fired"));
+            _keyboardLabels.Add(KeyboardLabelTypes.KeysReleased, new SimpleLabel(currentPosition += gap, "HandleKeyboardKeysReleased Fired"));
+            _keyboardLabels.Add(KeyboardLabelTypes.RunningKeys, new SimpleLabel(currentPosition += gap, "Running Keys: "));
+            _keyboardLabels.Add(KeyboardLabelTypes.Example, new SimpleLabel(currentPosition += gap, "Textbox Text Example: "));
 
             currentPosition = new Vector2(30.0f, 30.0f);
 
-            _mouseLabels.Add(MouseLabelTypes.CurrentState, new SimpleLabel(currentPosition += gap, "currentstate: "));
-            _mouseLabels.Add(MouseLabelTypes.ScrollWheel, new SimpleLabel(currentPosition += gap, "HandleMouseScrollWheelMove fired"));
-            _mouseLabels.Add(MouseLabelTypes.Moving, new SimpleLabel(currentPosition += gap, "HandleMouseMoving fired"));
-            _mouseLabels.Add(MouseLabelTypes.LeftClick, new SimpleLabel(currentPosition += gap, "HandleLeftMouseClick fired"));
-            _mouseLabels.Add(MouseLabelTypes.LeftDoubleClick, new SimpleLabel(currentPosition += gap, "HandleLeftMouseDoubleClick fired"));
-            _mouseLabels.Add(MouseLabelTypes.LeftDown, new SimpleLabel(currentPosition += gap, "HandleLeftMouseDown fired"));
-            _mouseLabels.Add(MouseLabelTypes.LeftUp, new SimpleLabel(currentPosition += gap, "HandleLeftMouseUp fired"));
-            _mouseLabels.Add(MouseLabelTypes.LeftDragging, new SimpleLabel(currentPosition += gap, "HandleLeftMouseDragging fired"));
-            _mouseLabels.Add(MouseLabelTypes.LeftDraggingDone, new SimpleLabel(currentPosition += gap, "HandleLeftMouseDragDone fired"));
-            _mouseLabels.Add(MouseLabelTypes.RightClick, new SimpleLabel(currentPosition += gap, "HandleRightMouseClick fired"));
-            _mouseLabels.Add(MouseLabelTypes.RightDoubleClick, new SimpleLabel(currentPosition += gap, "HandleRightMouseDoubleClick fired"));
-            _mouseLabels.Add(MouseLabelTypes.RightDown, new SimpleLabel(currentPosition += gap, "HandleRightMouseDown fired"));
-            _mouseLabels.Add(MouseLabelTypes.RightUp, new SimpleLabel(currentPosition += gap, "HandleRightMouseUp fired"));
-            _mouseLabels.Add(MouseLabelTypes.RightDragging, new SimpleLabel(currentPosition += gap, "HandleRightMouseDragging fired"));
-            _mouseLabels.Add(MouseLabelTypes.RightDraggingDone, new SimpleLabel(currentPosition += gap, "HandleRightMouseDragDone fired"));
+            _mouseLabels.Add(MouseLabelTypes.CurrentState, new SimpleLabel(currentPosition += gap, "Current State: "));
+            _mouseLabels.Add(MouseLabelTypes.ScrollWheel, new SimpleLabel(currentPosition += gap, "HandleMouseScrollWheelMove Fired"));
+            _mouseLabels.Add(MouseLabelTypes.Moving, new SimpleLabel(currentPosition += gap, "HandleMouseMoving Fired"));
+            _mouseLabels.Add(MouseLabelTypes.LeftClick, new SimpleLabel(currentPosition += gap, "HandleLeftMouseClick Fired"));
+            _mouseLabels.Add(MouseLabelTypes.LeftDoubleClick, new SimpleLabel(currentPosition += gap, "HandleLeftMouseDoubleClick Fired"));
+            _mouseLabels.Add(MouseLabelTypes.LeftDown, new SimpleLabel(currentPosition += gap, "HandleLeftMouseDown Fired"));
+            _mouseLabels.Add(MouseLabelTypes.LeftUp, new SimpleLabel(currentPosition += gap, "HandleLeftMouseUp Fired"));
+            _mouseLabels.Add(MouseLabelTypes.LeftDragging, new SimpleLabel(currentPosition += gap, "HandleLeftMouseDragging Fired"));
+            _mouseLabels.Add(MouseLabelTypes.LeftDraggingDone, new SimpleLabel(currentPosition += gap, "HandleLeftMouseDragDone Fired"));
+            _mouseLabels.Add(MouseLabelTypes.RightClick, new SimpleLabel(currentPosition += gap, "HandleRightMouseClick Fired"));
+            _mouseLabels.Add(MouseLabelTypes.RightDoubleClick, new SimpleLabel(currentPosition += gap, "HandleRightMouseDoubleClick Fired"));
+            _mouseLabels.Add(MouseLabelTypes.RightDown, new SimpleLabel(currentPosition += gap, "HandleRightMouseDown Fired"));
+            _mouseLabels.Add(MouseLabelTypes.RightUp, new SimpleLabel(currentPosition += gap, "HandleRightMouseUp Fired"));
+            _mouseLabels.Add(MouseLabelTypes.RightDragging, new SimpleLabel(currentPosition += gap, "HandleRightMouseDragging Fired"));
+            _mouseLabels.Add(MouseLabelTypes.RightDraggingDone, new SimpleLabel(currentPosition += gap, "HandleRightMouseDragDone Fired"));
         }
 
         public void UpdateLabelsBeforePoll()
@@ -196,8 +196,8 @@ namespace InputHandlersSample
 
         public void UpdateLabelsAfterPoll(GameTime gameTime, MouseInput mouseInput, KeyboardInput keyboardInput)
         {
-            _mouseLabels[MouseLabelTypes.CurrentState].Text = "current state: " + mouseInput.CurrentStateAsString();
-            _keyboardLabels[KeyboardLabelTypes.CurrentState].Text = "current state: " + keyboardInput.GetCurrentStateTypeName();
+            _mouseLabels[MouseLabelTypes.CurrentState].Text = "Current State: " + mouseInput.CurrentStateAsString();
+            _keyboardLabels[KeyboardLabelTypes.CurrentState].Text = "Current State: " + keyboardInput.GetCurrentStateTypeName();
 
             foreach (var sl in _mouseLabels.Values)
                 sl.Update(gameTime, _realTimer);
@@ -227,15 +227,15 @@ namespace InputHandlersSample
         {
             // Note - sometimes more than 2 keys wont register.  See this for explanation of keyboard hardware limitations:
             // http://blogs.msdn.com/shawnhar/archive/2007/03/28/keyboards-suck.aspx
-            _keyboardLabels[KeyboardLabelTypes.Example].Text = "current keys: ";
+            _keyboardLabels[KeyboardLabelTypes.Example].Text = "Current Keys: ";
             foreach (var k in klist)
                 _keyboardLabels[KeyboardLabelTypes.Example].Text += k.ToString();
             if ((KeyboardModifier.Alt & m) == KeyboardModifier.Alt)
-                _keyboardLabels[KeyboardLabelTypes.Example].Text += " +alt ";
+                _keyboardLabels[KeyboardLabelTypes.Example].Text += " +Alt ";
             if ((KeyboardModifier.Shift & m) == KeyboardModifier.Shift)
-                _keyboardLabels[KeyboardLabelTypes.Example].Text += " +shift ";
+                _keyboardLabels[KeyboardLabelTypes.Example].Text += " +Shift ";
             if ((KeyboardModifier.Ctrl & m) == KeyboardModifier.Ctrl)
-                _keyboardLabels[KeyboardLabelTypes.Example].Text += " +ctrl ";
+                _keyboardLabels[KeyboardLabelTypes.Example].Text += " +Ctrl ";
         }
     }
 }
