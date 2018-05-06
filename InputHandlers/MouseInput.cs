@@ -89,11 +89,11 @@ namespace InputHandlers.Mouse
             }
         }
 
-        private void CallHandleMouseMoving(MouseState m)
+        private void CallHandleMouseMoving(MouseState m, MouseState origin)
         {
             foreach (var mouseHandler in _mouseHandlers)
             {
-                mouseHandler.HandleMouseMoving(m);
+                mouseHandler.HandleMouseMoving(m, origin);
             }
         }
 
@@ -274,7 +274,7 @@ namespace InputHandlers.Mouse
         {
             public override void Enter(MouseInput mouseInput)
             {
-                mouseInput.CallHandleMouseMoving(mouseInput.CurrentMouseState);
+                mouseInput.CallHandleMouseMoving(mouseInput.CurrentMouseState, mouseInput.OldMouseState);
             }
 
             public override void Execute(MouseInput e)
@@ -286,7 +286,7 @@ namespace InputHandlers.Mouse
                 else if ((e.CurrentMouseState.X == e.OldMouseState.X) && (e.CurrentMouseState.Y == e.OldMouseState.Y))
                     e._mouseStateMachine.ChangeState(e._mouseStationaryState);
                 else
-                    e.CallHandleMouseMoving(e.CurrentMouseState);
+                    e.CallHandleMouseMoving(e.CurrentMouseState, e.OldMouseState);
             }
 
             public override void Exit(MouseInput mouseInput)

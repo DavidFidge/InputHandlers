@@ -79,7 +79,7 @@ namespace InputHandlers.Sample
             _mouseLabels[MouseLabelTypes.ScrollWheel].HighlightRed(_realTimer);
         }
 
-        public void HandleMouseMoving(MouseState mouseState)
+        public void HandleMouseMoving(MouseState mouseState, MouseState originalMouseState)
         {
             _mouseLabels[MouseLabelTypes.Moving].Activate();
         }

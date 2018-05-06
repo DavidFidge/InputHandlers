@@ -21,7 +21,8 @@ namespace InputHandlers.Mouse
         /// update while the mouse moves.
         /// </summary>
         /// <param name="mouseState">State of mouse when handler was called</param>
-        void HandleMouseMoving(MouseState mouseState);
+        /// <param name="origin">Previous state of mouse contining position from last poll</param>
+        void HandleMouseMoving(MouseState mouseState, MouseState origin);
 
         /// <summary>
         /// Handle left mouse click.  A mouse up event is sent just prior to this and is followed up by this event.
