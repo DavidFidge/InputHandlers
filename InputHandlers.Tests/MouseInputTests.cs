@@ -54,6 +54,61 @@ namespace InputHandlers.Tests
         }
 
         [TestMethod]
+        public void MouseInput_Should_Broadcast_To_Both_Handlers_When_MouseInput_Has_Two_Subscriptions()
+        {
+            // Arrange
+            var secondMouseHandler = Substitute.For<IMouseHandler>();
+
+            _mouseInput.Subscribe(secondMouseHandler);
+
+            var mouseState = new MouseState(
+                0,
+                0,
+                0,
+                ButtonState.Pressed,
+                ButtonState.Released,
+                ButtonState.Released,
+                ButtonState.Released,
+                ButtonState.Released
+            );
+
+            // Act
+            _mouseInput.Poll(mouseState);
+
+            // Assert
+            _mouseHandler.Received().HandleLeftMouseDown(Arg.Is(mouseState));
+            secondMouseHandler.Received().HandleLeftMouseDown(Arg.Is(mouseState));
+        }
+
+        [TestMethod]
+        public void MouseInput_Should_Subscribe_And_Unsubscribe_Correctly()
+        {
+            // Arrange
+            var secondMouseHandler = Substitute.For<IMouseHandler>();
+
+            _mouseInput.Subscribe(secondMouseHandler);
+            _mouseInput.Unsubscribe(_mouseHandler);
+            
+            var mouseState = new MouseState(
+                0,
+                0,
+                0,
+                ButtonState.Pressed,
+                ButtonState.Released,
+                ButtonState.Released,
+                ButtonState.Released,
+                ButtonState.Released
+            );
+
+            // Act
+            _mouseInput.Poll(mouseState);
+
+            // Assert
+            _mouseHandler.DidNotReceive().HandleLeftMouseDown(Arg.Any<MouseState>());
+            secondMouseHandler.Received().HandleLeftMouseDown(Arg.Is(mouseState));
+        }
+
+        [TestMethod]
         public void MouseInput_Should_Call_HandleMouseMoving_When_Mouse_Changes_Position()
         {
             // Arrange
@@ -904,6 +959,397 @@ namespace InputHandlers.Tests
             _mouseHandler.Received().HandleRightMouseUp(Arg.Is(mouseStateReleased));
             _mouseHandler.Received().HandleRightMouseDragDone(Arg.Is(mouseStateReleased), Arg.Is(mouseStatePressedOrigin));
             _mouseHandler.DidNotReceive().HandleRightMouseClick(Arg.Any<MouseState>());
+        }
+
+        [TestMethod]
+        public void MouseInput_Should_Call_HandleMiddleMouseDown_When_Middle_Is_Pressed()
+        {
+            // Arrange
+            var mouseState = new MouseState(
+                0,
+                0,
+                0,
+                ButtonState.Released,
+                ButtonState.Pressed,
+                ButtonState.Released,
+                ButtonState.Released,
+                ButtonState.Released
+            );
+
+            // Act
+            _mouseInput.Poll(mouseState);
+
+            // Assert
+            _mouseHandler.Received().HandleMiddleMouseDown(Arg.Is(mouseState));
+        }
+
+        [TestMethod]
+        public void MouseInput_Should_Call_HandleMiddleMouseClick_And_Up_When_Middle_Released()
+        {
+            // Arrange
+            var mouseStatePressed = new MouseState(
+                0,
+                0,
+                0,
+                ButtonState.Released,
+                ButtonState.Pressed,
+                ButtonState.Released,
+                ButtonState.Released,
+                ButtonState.Released
+            );
+
+            _mouseInput.Poll(mouseStatePressed);
+
+            var mouseStateReleased = new MouseState(
+                0,
+                0,
+                0,
+                ButtonState.Released,
+                ButtonState.Released,
+                ButtonState.Released,
+                ButtonState.Released,
+                ButtonState.Released
+            );
+
+            _testStopwatchProvider.AdvanceByMilliseconds(1);
+            _mouseHandler.ClearReceivedCalls();
+
+            // Act
+            _mouseInput.Poll(mouseStateReleased);
+
+            // Assert
+            _mouseHandler.Received().HandleMiddleMouseUp(Arg.Is(mouseStatePressed));
+            _mouseHandler.Received().HandleMiddleMouseClick(Arg.Is(mouseStatePressed));
+            _mouseHandler.DidNotReceive().HandleMiddleMouseDoubleClick(Arg.Any<MouseState>());
+        }
+
+        [TestMethod]
+        public void MouseInput_Should_Call_HandleMiddleMouseClick_And_Up_While_Within_Tolerance()
+        {
+            // Arrange
+            var mouseStatePressedOrigin = new MouseState(
+                _mouseInput.DragVariance,
+                _mouseInput.DragVariance,
+                0,
+                ButtonState.Released,
+                ButtonState.Pressed,
+                ButtonState.Released,
+                ButtonState.Released,
+                ButtonState.Released
+            );
+
+            _mouseInput.Poll(mouseStatePressedOrigin);
+            _mouseHandler.ClearReceivedCalls();
+
+            var mouseStateWithinDragDropToleranceMax = new MouseState(
+                _mouseInput.DragVariance + _mouseInput.DragVariance,
+                _mouseInput.DragVariance + _mouseInput.DragVariance,
+                0,
+                ButtonState.Released,
+                ButtonState.Pressed,
+                ButtonState.Released,
+                ButtonState.Released,
+                ButtonState.Released
+            );
+
+            _testStopwatchProvider.AdvanceByMilliseconds(1);
+            _mouseInput.Poll(mouseStateWithinDragDropToleranceMax);
+
+            var mouseStateWithinDragDropToleranceMin = new MouseState(
+                0,
+                0,
+                0,
+                ButtonState.Released,
+                ButtonState.Released,
+                ButtonState.Released,
+                ButtonState.Released,
+                ButtonState.Released
+            );
+
+            _testStopwatchProvider.AdvanceByMilliseconds(1);
+            _mouseInput.Poll(mouseStateWithinDragDropToleranceMin);
+
+            var mouseStateReleased = new MouseState(
+                0,
+                0,
+                0,
+                ButtonState.Released,
+                ButtonState.Released,
+                ButtonState.Released,
+                ButtonState.Released,
+                ButtonState.Released
+            );
+
+            _testStopwatchProvider.AdvanceByMilliseconds(1);
+
+            // Act
+            _mouseInput.Poll(mouseStateReleased);
+
+            // Assert
+            _mouseHandler.Received().HandleMiddleMouseUp(Arg.Is(mouseStatePressedOrigin));
+            _mouseHandler.Received().HandleMiddleMouseClick(Arg.Is(mouseStatePressedOrigin));
+            _mouseHandler.DidNotReceive().HandleMiddleMouseDragDone(Arg.Any<MouseState>(), Arg.Any<MouseState>());
+            _mouseHandler.DidNotReceive().HandleMiddleMouseDragging(Arg.Any<MouseState>(), Arg.Any<MouseState>());
+            _mouseHandler.DidNotReceive().HandleMouseMoving(Arg.Any<MouseState>(), Arg.Any<MouseState>());
+            _mouseHandler.DidNotReceive().HandleMiddleMouseDoubleClick(Arg.Any<MouseState>());
+        }
+
+        [TestMethod]
+        public void MouseInput_Should_Call_HandleMiddleMouseDoubleClick_Immediately_On_Second_Click_And_Suppress_MouseUp()
+        {
+            // Arrange
+            var mouseStatePressed = new MouseState(
+                0,
+                0,
+                0,
+                ButtonState.Released,
+                ButtonState.Pressed,
+                ButtonState.Released,
+                ButtonState.Released,
+                ButtonState.Released
+            );
+
+            _mouseInput.Poll(mouseStatePressed);
+
+            var mouseStateFirstRelease = new MouseState(
+                0,
+                0,
+                0,
+                ButtonState.Released,
+                ButtonState.Released,
+                ButtonState.Released,
+                ButtonState.Released,
+                ButtonState.Released
+            );
+
+            _testStopwatchProvider.AdvanceByMilliseconds(1);
+            _mouseInput.Poll(mouseStateFirstRelease);
+
+            var mouseStateSecondClick = new MouseState(
+                0,
+                0,
+                0,
+                ButtonState.Released,
+                ButtonState.Pressed,
+                ButtonState.Released,
+                ButtonState.Released,
+                ButtonState.Released
+            );
+
+            _testStopwatchProvider.Elapsed = new TimeSpan(0, 0, 0, 0, _mouseInput.DoubleClickDetectionTimeDelay);
+            _mouseHandler.ClearReceivedCalls();
+
+            // Act
+            _mouseInput.Poll(mouseStateSecondClick);
+
+            // Assert
+            _mouseHandler.Received().HandleMiddleMouseDoubleClick(Arg.Is(mouseStatePressed));
+            _mouseHandler.DidNotReceive().HandleMiddleMouseClick(Arg.Any<MouseState>());
+            _mouseHandler.DidNotReceive().HandleMiddleMouseDown(Arg.Any<MouseState>());
+            _mouseHandler.DidNotReceive().HandleMiddleMouseUp(Arg.Any<MouseState>());
+
+            // Act - Releasing
+            _mouseHandler.ClearReceivedCalls();
+
+            var mouseStateReleased = new MouseState(
+                0,
+                0,
+                0,
+                ButtonState.Released,
+                ButtonState.Released,
+                ButtonState.Released,
+                ButtonState.Released,
+                ButtonState.Released
+            );
+
+            _testStopwatchProvider.AdvanceByMilliseconds(1);
+            _mouseInput.Poll(mouseStateReleased);
+
+            // Assert - Releasing
+            _mouseHandler.DidNotReceive().HandleMiddleMouseDoubleClick(Arg.Any<MouseState>());
+            _mouseHandler.DidNotReceive().HandleMiddleMouseClick(Arg.Any<MouseState>());
+            _mouseHandler.DidNotReceive().HandleMiddleMouseDown(Arg.Any<MouseState>());
+            _mouseHandler.DidNotReceive().HandleMiddleMouseUp(Arg.Any<MouseState>());
+        }
+
+        [TestMethod]
+        public void MouseInput_Should_Not_Call_HandleMiddleMouseDoubleClick_If_DoubleClickDetection_Time_Has_Passed()
+        {
+            // Arrange
+            var mouseStatePressed = new MouseState(
+                0,
+                0,
+                0,
+                ButtonState.Released,
+                ButtonState.Pressed,
+                ButtonState.Released,
+                ButtonState.Released,
+                ButtonState.Released
+            );
+
+            _mouseInput.Poll(mouseStatePressed);
+
+            var mouseStateFirstRelease = new MouseState(
+                0,
+                0,
+                0,
+                ButtonState.Released,
+                ButtonState.Released,
+                ButtonState.Released,
+                ButtonState.Released,
+                ButtonState.Released
+            );
+
+            _testStopwatchProvider.AdvanceByMilliseconds(1);
+            _mouseInput.Poll(mouseStateFirstRelease);
+
+            var mouseStateSecondClick = new MouseState(
+                0,
+                0,
+                0,
+                ButtonState.Released,
+                ButtonState.Pressed,
+                ButtonState.Released,
+                ButtonState.Released,
+                ButtonState.Released
+            );
+
+            _testStopwatchProvider.Elapsed = new TimeSpan(0, 0, 0, 0, _mouseInput.DoubleClickDetectionTimeDelay + 1);
+            _mouseHandler.ClearReceivedCalls();
+
+            // Act
+            _mouseInput.Poll(mouseStateSecondClick);
+
+            // Assert
+            _mouseHandler.Received().HandleMiddleMouseDown(Arg.Is(mouseStateSecondClick));
+
+            _mouseHandler.DidNotReceive().HandleMiddleMouseDoubleClick(Arg.Any<MouseState>());
+            _mouseHandler.DidNotReceive().HandleMiddleMouseClick(Arg.Any<MouseState>());
+            _mouseHandler.DidNotReceive().HandleMiddleMouseUp(Arg.Any<MouseState>());
+
+            // Act - Releasing
+            _mouseHandler.ClearReceivedCalls();
+
+            var mouseStateReleased = new MouseState(
+                0,
+                0,
+                0,
+                ButtonState.Released,
+                ButtonState.Released,
+                ButtonState.Released,
+                ButtonState.Released,
+                ButtonState.Released
+            );
+
+            _testStopwatchProvider.AdvanceByMilliseconds(1);
+            _mouseInput.Poll(mouseStateReleased);
+
+            // Assert - Releasing
+            _mouseHandler.Received().HandleMiddleMouseUp(Arg.Is(mouseStateSecondClick));
+            _mouseHandler.Received().HandleMiddleMouseClick(Arg.Is(mouseStateSecondClick));
+            _mouseHandler.DidNotReceive().HandleMiddleMouseDragDone(Arg.Any<MouseState>(), Arg.Any<MouseState>());
+            _mouseHandler.DidNotReceive().HandleMiddleMouseDragging(Arg.Any<MouseState>(), Arg.Any<MouseState>());
+            _mouseHandler.DidNotReceive().HandleMouseMoving(Arg.Any<MouseState>(), Arg.Any<MouseState>());
+            _mouseHandler.DidNotReceive().HandleMiddleMouseDoubleClick(Arg.Any<MouseState>());
+        }
+
+        [DataTestMethod]
+        [DataRow(-1)]
+        [DataRow(1)]
+        public void MouseInput_Should_Call_HandleMiddleMouseDragging_When_Dragging_With_Middle_Down(int varianceMultiplier)
+        {
+            // Arrange
+            var startingPosition = _mouseInput.DragVariance * 2;
+
+            var mouseStatePressedOrigin = new MouseState(
+                startingPosition,
+                startingPosition,
+                0,
+                ButtonState.Released,
+                ButtonState.Pressed,
+                ButtonState.Released,
+                ButtonState.Released,
+                ButtonState.Released
+            );
+
+            _mouseInput.Poll(mouseStatePressedOrigin);
+            _mouseHandler.ClearReceivedCalls();
+
+            var mouseStateDragging = new MouseState(
+                startingPosition + (_mouseInput.DragVariance + 1) * varianceMultiplier,
+                startingPosition + (_mouseInput.DragVariance + 1) * varianceMultiplier,
+                0,
+                ButtonState.Released,
+                ButtonState.Pressed,
+                ButtonState.Released,
+                ButtonState.Released,
+                ButtonState.Released
+            );
+
+            _testStopwatchProvider.AdvanceByMilliseconds(1);
+
+            // Act
+            _mouseInput.Poll(mouseStateDragging);
+
+            // Assert
+            _mouseHandler.Received().HandleMiddleMouseDragging(Arg.Is(mouseStateDragging), Arg.Is(mouseStatePressedOrigin));
+            _mouseHandler.DidNotReceive().HandleMouseMoving(Arg.Any<MouseState>(), Arg.Any<MouseState>());
+            _mouseHandler.DidNotReceive().HandleMiddleMouseClick(Arg.Any<MouseState>());
+        }
+
+        [TestMethod]
+        public void MouseInput_Should_Call_HandleMiddleMouseDragDone_And_Middle_Up_When_Releasing_Middle_After_Drag()
+        {
+            // Arrange
+            var mouseStatePressedOrigin = new MouseState(
+                0,
+                0,
+                0,
+                ButtonState.Released,
+                ButtonState.Pressed,
+                ButtonState.Released,
+                ButtonState.Released,
+                ButtonState.Released
+            );
+
+            _mouseInput.Poll(mouseStatePressedOrigin);
+
+            var mouseStateDragging = new MouseState(
+                _mouseInput.DragVariance + 1,
+                _mouseInput.DragVariance + 1,
+                0,
+                ButtonState.Released,
+                ButtonState.Pressed,
+                ButtonState.Released,
+                ButtonState.Released,
+                ButtonState.Released
+            );
+
+            _testStopwatchProvider.AdvanceByMilliseconds(1);
+
+            _mouseInput.Poll(mouseStateDragging);
+
+            var mouseStateReleased = new MouseState(
+                _mouseInput.DragVariance + 1,
+                _mouseInput.DragVariance + 1,
+                0,
+                ButtonState.Released,
+                ButtonState.Released,
+                ButtonState.Released,
+                ButtonState.Released,
+                ButtonState.Released
+            );
+
+            _testStopwatchProvider.AdvanceByMilliseconds(1);
+            _mouseHandler.ClearReceivedCalls();
+
+            // Act
+            _mouseInput.Poll(mouseStateReleased);
+
+            // Assert
+            _mouseHandler.Received().HandleMiddleMouseUp(Arg.Is(mouseStateReleased));
+            _mouseHandler.Received().HandleMiddleMouseDragDone(Arg.Is(mouseStateReleased), Arg.Is(mouseStatePressedOrigin));
+            _mouseHandler.DidNotReceive().HandleMiddleMouseClick(Arg.Any<MouseState>());
         }
     }
 }

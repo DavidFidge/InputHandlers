@@ -13,7 +13,7 @@ namespace InputHandlers.Sample
     public class InputHandlersSample : Game
     {
         private const int _screenWidth = 1400;
-        private const int _screenHeight = 700;
+        private const int _screenHeight = 800;
         private KeyboardInput _keyboard;
         private MouseInput _mouse;
         private SpriteFont _arialfont;

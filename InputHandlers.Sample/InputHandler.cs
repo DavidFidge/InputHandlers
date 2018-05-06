@@ -41,7 +41,13 @@ namespace InputHandlers.Sample
             RightDown,
             RightUp,
             RightDragging,
-            RightDraggingDone
+            RightDraggingDone,
+            MiddleClick,
+            MiddleDoubleClick,
+            MiddleDown,
+            MiddleUp,
+            MiddleDragging,
+            MiddleDraggingDone
         }
 
         private Dictionary<KeyboardLabelTypes, SimpleLabel> _keyboardLabels;
@@ -150,6 +156,39 @@ namespace InputHandlers.Sample
             _mouseLabels[MouseLabelTypes.RightDraggingDone].HighlightRed(_realTimer);
         }
 
+        public void HandleMiddleMouseClick(MouseState mouseState)
+        {
+            _mouseLabels[MouseLabelTypes.MiddleClick].HighlightRed(_realTimer);
+        }
+
+        public void HandleMiddleMouseDoubleClick(MouseState mouseState)
+        {
+            _mouseLabels[MouseLabelTypes.MiddleDoubleClick].HighlightRed(_realTimer);
+        }
+
+        public void HandleMiddleMouseDown(MouseState mouseState)
+        {
+            _mouseLabels[MouseLabelTypes.MiddleDown].Activate();
+        }
+
+        public void HandleMiddleMouseUp(MouseState mouseState)
+        {
+            _mouseLabels[MouseLabelTypes.MiddleDown].Deactivate();
+            _mouseLabels[MouseLabelTypes.MiddleUp].HighlightRed(_realTimer);
+        }
+
+        public void HandleMiddleMouseDragging(MouseState mouseState, MouseState originalMouseState)
+        {
+            _mouseLabels[MouseLabelTypes.MiddleDown].Deactivate();
+            _mouseLabels[MouseLabelTypes.MiddleDragging].Activate();
+        }
+
+        public void HandleMiddleMouseDragDone(MouseState mouseState, MouseState originalMouseState)
+        {
+            _mouseLabels[MouseLabelTypes.MiddleDragging].Deactivate();
+            _mouseLabels[MouseLabelTypes.MiddleDraggingDone].HighlightRed(_realTimer);
+        }
+
         public void Initialise()
         {
             _realTimer = new Stopwatch();
@@ -186,6 +225,12 @@ namespace InputHandlers.Sample
             _mouseLabels.Add(MouseLabelTypes.RightUp, new SimpleLabel(currentPosition += gap, "HandleRightMouseUp Fired"));
             _mouseLabels.Add(MouseLabelTypes.RightDragging, new SimpleLabel(currentPosition += gap, "HandleRightMouseDragging Fired"));
             _mouseLabels.Add(MouseLabelTypes.RightDraggingDone, new SimpleLabel(currentPosition += gap, "HandleRightMouseDragDone Fired"));
+            _mouseLabels.Add(MouseLabelTypes.MiddleClick, new SimpleLabel(currentPosition += gap, "HandleMiddleMouseClick Fired"));
+            _mouseLabels.Add(MouseLabelTypes.MiddleDoubleClick, new SimpleLabel(currentPosition += gap, "HandleMiddleMouseDoubleClick Fired"));
+            _mouseLabels.Add(MouseLabelTypes.MiddleDown, new SimpleLabel(currentPosition += gap, "HandleMiddleMouseDown Fired"));
+            _mouseLabels.Add(MouseLabelTypes.MiddleUp, new SimpleLabel(currentPosition += gap, "HandleMiddleMouseUp Fired"));
+            _mouseLabels.Add(MouseLabelTypes.MiddleDragging, new SimpleLabel(currentPosition += gap, "HandleMiddleMouseDragging Fired"));
+            _mouseLabels.Add(MouseLabelTypes.MiddleDraggingDone, new SimpleLabel(currentPosition += gap, "HandleMiddleMouseDragDone Fired"));
         }
 
         public void UpdateLabelsBeforePoll()
