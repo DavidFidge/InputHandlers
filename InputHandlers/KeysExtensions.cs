@@ -12,6 +12,7 @@ namespace InputHandlers.Keyboard
         {
             if ((key >= Keys.A) && (key <= Keys.Z))
                 return true;
+
             return false;
         }
 
@@ -19,6 +20,7 @@ namespace InputHandlers.Keyboard
         {
             if ((key >= Keys.D0) && (key <= Keys.D9))
                 return true;
+
             return false;
         }
 
@@ -26,6 +28,7 @@ namespace InputHandlers.Keyboard
         {
             if ((key >= Keys.NumPad0) && (key <= Keys.NumPad9))
                 return true;
+
             return false;
         }
 
@@ -33,8 +36,10 @@ namespace InputHandlers.Keyboard
         {
             if (IsKeyNumber(key))
                 return true;
+
             if (treatNumpadAsNumeric && IsKeyNumberpad(key))
                 return true;
+
             return false;
         }
 
@@ -46,10 +51,11 @@ namespace InputHandlers.Keyboard
             return false;
         }
 
-        public static bool IsFkey(this Keys key)
+        public static bool IsFunctionKey(this Keys key)
         {
             if ((key >= Keys.F1) && (key <= Keys.F12))
                 return true;
+
             return false;
         }
 
@@ -62,6 +68,7 @@ namespace InputHandlers.Keyboard
         {
             if ((key == Keys.LeftShift) || (key == Keys.RightShift))
                 return true;
+
             return false;
         }
 
@@ -69,6 +76,7 @@ namespace InputHandlers.Keyboard
         {
             if ((key == Keys.LeftControl) || (key == Keys.RightControl))
                 return true;
+
             return false;
         }
 
@@ -76,6 +84,7 @@ namespace InputHandlers.Keyboard
         {
             if ((key == Keys.LeftAlt) || (key == Keys.RightAlt))
                 return true;
+
             return false;
         }
 
@@ -83,6 +92,7 @@ namespace InputHandlers.Keyboard
         {
             if ((KeyboardModifier.Shift & keyboardModifier) == KeyboardModifier.Shift)
                 return true;
+
             return false;
         }
 
@@ -90,6 +100,7 @@ namespace InputHandlers.Keyboard
         {
             if ((KeyboardModifier.Ctrl & keyboardModifier) == KeyboardModifier.Ctrl)
                 return true;
+
             return false;
         }
 
@@ -97,6 +108,7 @@ namespace InputHandlers.Keyboard
         {
             if ((KeyboardModifier.Alt & keyboardModifier) == KeyboardModifier.Alt)
                 return true;
+
             return false;
         }
 

@@ -27,6 +27,9 @@ namespace InputHandlers.Mouse
         public MouseState CurrentMouseState { get; private set; }
         public MouseState DragOriginPosition { get; private set; }
         public IStopwatchProvider StopwatchProvider { get; private set; }
+        public bool IsLeftButtonEnabled { get; set; }
+        public bool IsMiddleButtonEnabled { get; set; }
+        public bool IsRightButtonEnabled { get; set; }
 
         /// <summary>
         /// DragVariance is a fudging factor for detecting the difference between mouse clicks and mouse drags.
@@ -51,6 +54,10 @@ namespace InputHandlers.Mouse
 
         public MouseInput(IStopwatchProvider stopwatchProvider)
         {
+            IsLeftButtonEnabled = true;
+            IsMiddleButtonEnabled = true;
+            IsRightButtonEnabled = true;
+
             _mouseHandlers = new List<IMouseHandler>();
             _mouseStationaryState = new MouseStationaryState();
             _mouseMovingState = new MouseMovingState();
@@ -301,19 +308,19 @@ namespace InputHandlers.Mouse
         {
             protected bool TryChangeStateForButtons(MouseInput mouseInput)
             {
-                if (mouseInput.CurrentMouseState.LeftButton == ButtonState.Pressed)
+                if (mouseInput.IsLeftButtonEnabled && mouseInput.CurrentMouseState.LeftButton == ButtonState.Pressed)
                 {
                     mouseInput._mouseStateMachine.ChangeState(mouseInput._mouseLeftDownState);
                     return true;
                 }
 
-                if (mouseInput.CurrentMouseState.RightButton == ButtonState.Pressed)
+                if (mouseInput.IsRightButtonEnabled && mouseInput.CurrentMouseState.RightButton == ButtonState.Pressed)
                 {
                     mouseInput._mouseStateMachine.ChangeState(mouseInput._mouseRightDownState);
                     return true;
                 }
 
-                if (mouseInput.CurrentMouseState.MiddleButton == ButtonState.Pressed)
+                if (mouseInput.IsMiddleButtonEnabled && mouseInput.CurrentMouseState.MiddleButton == ButtonState.Pressed)
                 {
                     mouseInput._mouseStateMachine.ChangeState(mouseInput._mouseMiddleDownState);
                     return true;
@@ -358,6 +365,7 @@ namespace InputHandlers.Mouse
             {
                 if (TryChangeStateForButtons(mouseInput))
                     return;
+
                 if (mouseInput.CurrentMouseState.X == mouseInput.OldMouseState.X && mouseInput.CurrentMouseState.Y == mouseInput.OldMouseState.Y)
                     mouseInput._mouseStateMachine.ChangeState(mouseInput._mouseStationaryState);
                 else

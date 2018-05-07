@@ -54,6 +54,80 @@ namespace InputHandlers.Tests
         }
 
         [TestMethod]
+        public void MouseInput_Should_Increment_UpdateNumber_On_Poll()
+        {
+            // Arrange
+            var secondMouseHandler = Substitute.For<IMouseHandler>();
+
+            _mouseInput.Subscribe(secondMouseHandler);
+
+            var mouseState = new MouseState(
+                0,
+                0,
+                0,
+                ButtonState.Released,
+                ButtonState.Released,
+                ButtonState.Released,
+                ButtonState.Released,
+                ButtonState.Released
+            );
+
+            // Act
+            _mouseInput.Poll(mouseState);
+
+            // Assert
+            Assert.AreEqual(1, _mouseInput.UpdateNumber);
+
+            // Act - poll 2
+            _mouseInput.Poll(mouseState);
+
+            // Assert = poll 2
+            Assert.AreEqual(2, _mouseInput.UpdateNumber);
+        }
+
+        [TestMethod]
+        public void MouseInput_Should_Reset_To_Stationary_State_And_Set_UpdateNumber_To_Zero_When_Resetting()
+        {
+            // Arrange
+            var mouseState = new MouseState(
+                0,
+                0,
+                0,
+                ButtonState.Pressed,
+                ButtonState.Released,
+                ButtonState.Released,
+                ButtonState.Released,
+                ButtonState.Released
+            );
+
+            _mouseInput.Poll(mouseState);
+
+            _mouseHandler.ClearReceivedCalls();
+
+            // Act
+            _mouseInput.Reset();
+
+            // Assert
+            Assert.AreEqual(0, _mouseInput.UpdateNumber);
+
+            // Act - poll again with mouse released, state is stationary and so no mouse up will occur
+            var mouseStateReleased = new MouseState(
+                0,
+                0,
+                0,
+                ButtonState.Released,
+                ButtonState.Released,
+                ButtonState.Released,
+                ButtonState.Released,
+                ButtonState.Released
+            );
+
+            _mouseInput.Poll(mouseStateReleased);
+
+            _mouseHandler.DidNotReceive().HandleLeftMouseUp(Arg.Any<MouseState>());
+        }
+
+        [TestMethod]
         public void MouseInput_Should_Broadcast_To_Both_Handlers_When_MouseInput_Has_Two_Subscriptions()
         {
             // Arrange
@@ -206,6 +280,30 @@ namespace InputHandlers.Tests
 
             // Assert
             _mouseHandler.Received().HandleLeftMouseDown(Arg.Is(mouseState));
+        }
+
+        [TestMethod]
+        public void MouseInput_Should_Do_Nothing_When_Left_Is_Pressed_When_Left_Button_Disabled()
+        {
+            // Arrange
+            var mouseState = new MouseState(
+                0,
+                0,
+                0,
+                ButtonState.Pressed,
+                ButtonState.Released,
+                ButtonState.Released,
+                ButtonState.Released,
+                ButtonState.Released
+            );
+
+            _mouseInput.IsLeftButtonEnabled = false;
+
+            // Act
+            _mouseInput.Poll(mouseState);
+
+            // Assert
+            _mouseHandler.DidNotReceive().HandleLeftMouseDown(Arg.Any<MouseState>());
         }
 
         [TestMethod]
@@ -600,6 +698,30 @@ namespace InputHandlers.Tests
         }
 
         [TestMethod]
+        public void MouseInput_Should_Do_Nothing_When_Right_Is_Pressed_When_Right_Button_Disabled()
+        {
+            // Arrange
+            var mouseState = new MouseState(
+                0,
+                0,
+                0,
+                ButtonState.Released,
+                ButtonState.Released,
+                ButtonState.Pressed,
+                ButtonState.Released,
+                ButtonState.Released
+            );
+
+            _mouseInput.IsRightButtonEnabled = false;
+
+            // Act
+            _mouseInput.Poll(mouseState);
+
+            // Assert
+            _mouseHandler.DidNotReceive().HandleRightMouseDown(Arg.Any<MouseState>());
+        }
+
+        [TestMethod]
         public void MouseInput_Should_Call_HandleRightMouseClick_And_Up_When_Right_Released()
         {
             // Arrange
@@ -981,6 +1103,30 @@ namespace InputHandlers.Tests
 
             // Assert
             _mouseHandler.Received().HandleMiddleMouseDown(Arg.Is(mouseState));
+        }
+
+        [TestMethod]
+        public void MouseInput_Should_Do_Nothing_When_Middle_Is_Pressed_When_Middle_Button_Disabled()
+        {
+            // Arrange
+            var mouseState = new MouseState(
+                0,
+                0,
+                0,
+                ButtonState.Released,
+                ButtonState.Pressed,
+                ButtonState.Released,
+                ButtonState.Released,
+                ButtonState.Released
+            );
+
+            _mouseInput.IsMiddleButtonEnabled = false;
+
+            // Act
+            _mouseInput.Poll(mouseState);
+
+            // Assert
+            _mouseHandler.DidNotReceive().HandleMiddleMouseDown(Arg.Any<MouseState>());
         }
 
         [TestMethod]
