@@ -47,6 +47,7 @@
     <Compile Include="IMouseHandler.cs" />
     <Compile Include="IStopwatchProvider.cs" />
     <Compile Include="KeyboardInput.cs" />
+    <Compile Include="KeyDelta.cs" />
     <Compile Include="MouseInput.cs" />
     <Compile Include="KeysExtensions.cs" />
     <Compile Include="KeyboardModifier.cs" />
