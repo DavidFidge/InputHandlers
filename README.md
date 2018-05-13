@@ -7,33 +7,51 @@ This library processes mouse and keyboard updates from XNA and broadcasts change
 A sample project is provided which shows how the events work and how to use the library.
 
 ## Mouse Events
-
 HandleMouseScrollWheelMove
+
 HandleMouseMoving
 
 HandleLeftMouseClick
+
 HandleLeftMouseDoubleClick
+
 HandleLeftMouseDown
+
 HandleLeftMouseUp
+
 HandleLeftMouseDragging
+
 HandleLeftMouseDragDone
 
 HandleRightMouseClick
+
 HandleRightMouseDoubleClick
+
 HandleRightMouseDown
+
 HandleRightMouseUp
+
 HandleRightMouseDragging
+
 HandleRightMouseDragDone
 
 HandleMiddleMouseClick
+
 HandleMiddleMouseDoubleClick
+
 HandleMiddleMouseDown
+
 HandleMiddleMouseUp
+
 HandleMiddleMouseDragging
+
 HandleMiddleMouseDragDone
 
 ## Keyboard Events
 HandleKeyboardKeyDown
+
 HandleKeyboardKeyLost
+
 HandleKeyboardKeyRepeat
+
 HandleKeyboardKeysReleased
