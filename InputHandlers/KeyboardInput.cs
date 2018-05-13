@@ -79,6 +79,7 @@ namespace InputHandlers.Keyboard
         public KeyboardInput(IStopwatchProvider stopwatchProvider)
         {
             IsRepeatEnabled = true;
+
             _keyboardHandlers = new List<IKeyboardHandler>();
 
             _keyboardUnpressedState = new KeyboardUnpressedState();
@@ -192,12 +193,11 @@ namespace InputHandlers.Keyboard
 
             public override void Execute(KeyboardInput keyboardInput)
             {
-                // get pressed keys list
                 var pressedKeys = keyboardInput.CurrentKeyboardState.GetPressedKeys();
 
-                foreach (var dwn in pressedKeys)
+                foreach (var key in pressedKeys)
                 {
-                    if (keyboardInput.UnmanagedKeys.Count == 0 || !keyboardInput.UnmanagedKeys.Contains(dwn))
+                    if (!keyboardInput.UnmanagedKeys.Contains(key))
                     {
                         keyboardInput._keyDelta.Start(keyboardInput.CurrentKeyboardState);
                         keyboardInput._keyDelta.Update(keyboardInput.CurrentKeyboardState);

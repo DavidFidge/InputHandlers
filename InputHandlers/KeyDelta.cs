@@ -45,16 +45,17 @@ namespace InputHandlers.Keyboard
         {
             if (_requiresUpdate)
             {
-                if (!TreatModifiersAsKeys)
-                {
-                    LastModifiers = NewModifiers;
-                    NewModifiers = currentKeyboardState.GetModifiers();
-                }
-
                 _lastKeyList = _newKeyList;
                 _newKeyList = currentKeyboardState.GetPressedKeys();
 
-                StripUnmanagedKeysAndModifiers(ref _newKeyList);
+                StripUnmanagedKeys(ref _newKeyList);
+
+                if (!TreatModifiersAsKeys)
+                {
+                    LastModifiers = NewModifiers;
+                    NewModifiers = _newKeyList.GetModifiers();
+                    StripModifiers(ref _newKeyList);
+                }
 
                 NewKeyDelta = _newKeyList.Except(_lastKeyList).ToList();
 
@@ -70,10 +71,14 @@ namespace InputHandlers.Keyboard
             _requiresUpdate = true;
             _lastKeyList = currentKeyboardState.GetPressedKeys();
 
-            if (!TreatModifiersAsKeys)
-                LastModifiers = currentKeyboardState.GetModifiers();
+            StripUnmanagedKeys(ref _lastKeyList);
 
-            StripUnmanagedKeysAndModifiers(ref _lastKeyList);
+            if (!TreatModifiersAsKeys)
+            {
+                LastModifiers = _lastKeyList.GetModifiers();
+                StripModifiers(ref _lastKeyList);
+            }
+
             NewKeyDelta.Clear();
             FocusKey = Keys.None;
         }
@@ -115,23 +120,29 @@ namespace InputHandlers.Keyboard
             return _unmanagedKeys.Contains(key);
         }
 
-        private bool IsModifierKeyAndNotTreatingModifiersAsKey(Keys key)
+        private void StripUnmanagedKeys(ref Keys[] keyList)
         {
-            return !TreatModifiersAsKeys && key.IsModifierKey();
-        }
-
-        private void StripUnmanagedKeysAndModifiers(ref Keys[] keyList)
-        {
-            if (!_unmanagedKeys.Any() && TreatModifiersAsKeys)
+            if (!_unmanagedKeys.Any())
                 return;
 
-            int keyListIndex;
             var keyListUpdateIndex = 0;
 
+            StripKeys(key => !IsUnmanagedKey(key), ref keyList, keyListUpdateIndex);
+        }
+
+        private void StripModifiers(ref Keys[] keyList)
+        {
+            var keyListUpdateIndex = 0;
+
+            StripKeys(key => !key.IsModifierKey(), ref keyList, keyListUpdateIndex);
+        }
+
+        private void StripKeys(Func<Keys, bool> keepKeyFunc, ref Keys[] keyList, int keyListUpdateIndex)
+        {
+            int keyListIndex;
             for (keyListIndex = 0; keyListIndex < keyList.Length; keyListIndex++)
             {
-                if (!(IsModifierKeyAndNotTreatingModifiersAsKey(keyList[keyListIndex]) ||
-                      IsUnmanagedKey(keyList[keyListIndex])))
+                if (keepKeyFunc(keyList[keyListIndex]))
                 {
                     keyList[keyListUpdateIndex] = keyList[keyListIndex];
                     keyListUpdateIndex++;

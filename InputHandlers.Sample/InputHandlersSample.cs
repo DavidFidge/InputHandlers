@@ -46,7 +46,7 @@ namespace InputHandlers.Sample
             // _keyboard.UnmanagedKeys.Add(Keys.W);
 
             // You may want to treat control, alt and delete as keys rather than modifier keys.  Try uncommenting the following line to see this behaviour:
-            _keyboard.TreatModifiersAsKeys = true;
+            // _keyboard.TreatModifiersAsKeys = true;
 
             _inputHandler = new InputHandler();
             _inputHandler.Initialise();

@@ -10,26 +10,17 @@ namespace InputHandlers.Keyboard
     {
         public static bool IsKeyAlpha(this Keys key)
         {
-            if ((key >= Keys.A) && (key <= Keys.Z))
-                return true;
-
-            return false;
+            return key >= Keys.A && key <= Keys.Z;
         }
 
         public static bool IsKeyNumber(this Keys key)
         {
-            if ((key >= Keys.D0) && (key <= Keys.D9))
-                return true;
-
-            return false;
+            return key >= Keys.D0 && key <= Keys.D9;
         }
 
         public static bool IsKeyNumberpad(this Keys key)
         {
-            if ((key >= Keys.NumPad0) && (key <= Keys.NumPad9))
-                return true;
-
-            return false;
+            return key >= Keys.NumPad0 && key <= Keys.NumPad9;
         }
 
         public static bool IsKeyNumeric(this Keys key, bool treatNumpadAsNumeric = true)
@@ -37,26 +28,17 @@ namespace InputHandlers.Keyboard
             if (IsKeyNumber(key))
                 return true;
 
-            if (treatNumpadAsNumeric && IsKeyNumberpad(key))
-                return true;
-
-            return false;
+            return treatNumpadAsNumeric && IsKeyNumberpad(key);
         }
 
         public static bool IsKeyAlphanumeric(this Keys key)
         {
-            if (IsKeyAlpha(key) || IsKeyNumeric(key))
-                return true;
-
-            return false;
+            return IsKeyAlpha(key) || IsKeyNumeric(key);
         }
 
         public static bool IsFunctionKey(this Keys key)
         {
-            if ((key >= Keys.F1) && (key <= Keys.F12))
-                return true;
-
-            return false;
+            return key >= Keys.F1 && key <= Keys.F12;
         }
 
         public static bool IsKeySpace(this Keys key)
@@ -66,26 +48,17 @@ namespace InputHandlers.Keyboard
 
         public static bool IsShift(this Keys key)
         {
-            if ((key == Keys.LeftShift) || (key == Keys.RightShift))
-                return true;
-
-            return false;
+            return key == Keys.LeftShift || key == Keys.RightShift;
         }
 
         public static bool IsCtrl(this Keys key)
         {
-            if ((key == Keys.LeftControl) || (key == Keys.RightControl))
-                return true;
-
-            return false;
+            return key == Keys.LeftControl || key == Keys.RightControl;
         }
 
         public static bool IsAlt(this Keys key)
         {
-            if ((key == Keys.LeftAlt) || (key == Keys.RightAlt))
-                return true;
-
-            return false;
+            return key == Keys.LeftAlt || key == Keys.RightAlt;
         }
 
         public static bool IsShiftDown(this KeyboardModifier keyboardModifier)
@@ -98,18 +71,12 @@ namespace InputHandlers.Keyboard
 
         public static bool IsCtrlDown(this KeyboardModifier keyboardModifier)
         {
-            if ((KeyboardModifier.Ctrl & keyboardModifier) == KeyboardModifier.Ctrl)
-                return true;
-
-            return false;
+            return (KeyboardModifier.Ctrl & keyboardModifier) == KeyboardModifier.Ctrl;
         }
 
         public static bool IsAltDown(this KeyboardModifier keyboardModifier)
         {
-            if ((KeyboardModifier.Alt & keyboardModifier) == KeyboardModifier.Alt)
-                return true;
-
-            return false;
+            return (KeyboardModifier.Alt & keyboardModifier) == KeyboardModifier.Alt;
         }
 
         /// <summary>
@@ -127,7 +94,7 @@ namespace InputHandlers.Keyboard
         /// <returns>KeyboardModifier object which has shift bit flagged if a shift key was pressed</returns>
         public static KeyboardModifier IsShiftModifier(this Keys key)
         {
-            if ((key == Keys.LeftShift) || (key == Keys.RightShift))
+            if (key == Keys.LeftShift || key == Keys.RightShift)
                 return KeyboardModifier.Shift;
 
             return KeyboardModifier.None;
@@ -140,7 +107,7 @@ namespace InputHandlers.Keyboard
         /// <returns>KeyboardModifier object with control key flagged if a control key was pressed</returns>
         public static KeyboardModifier IsCtrlModifier(this Keys key)
         {
-            if ((key == Keys.LeftControl) || (key == Keys.RightControl))
+            if (key == Keys.LeftControl || key == Keys.RightControl)
                 return KeyboardModifier.Ctrl;
 
             return KeyboardModifier.None;
@@ -153,7 +120,7 @@ namespace InputHandlers.Keyboard
         /// <returns>KeyboardModifier object with alt key flagged if an alt key is pressed</returns>
         public static KeyboardModifier IsAltModifier(this Keys key)
         {
-            if ((key == Keys.LeftAlt) || (key == Keys.RightAlt))
+            if (key == Keys.LeftAlt || key == Keys.RightAlt)
                 return KeyboardModifier.Alt;
 
             return KeyboardModifier.None;
@@ -189,15 +156,14 @@ namespace InputHandlers.Keyboard
         /// <param name="key"></param>
         /// <param name="keyboardModifier"></param>
         /// <param name="selectspecials">filters so that specials are included in the string if true</param>
-        /// <param name="selectalphas">filters so that alphas are selected if true</param>
-        /// <param name="selectnumerics">filters so that numerics are selected if true </param>
+        /// <param name="selectAlphas">filters so that alphas are selected if true</param>
+        /// <param name="selectNumerics">filters so that numerics are selected if true </param>
         /// <returns></returns>
-        public static string Display(this Keys key, KeyboardModifier keyboardModifier, bool selectspecials, bool selectalphas,
-            bool selectnumerics)
+        public static string Display(this Keys key, KeyboardModifier keyboardModifier, bool selectspecials, bool selectAlphas,
+            bool selectNumerics)
         {
-            return Display(key, keyboardModifier, selectspecials, selectalphas, selectnumerics, false);
+            return Display(key, keyboardModifier, selectspecials, selectAlphas, selectNumerics, false);
         }
-
 
         /// <summary>
         ///     convert the current key into a printable string.  If users want to force upper case or lower case they can change
@@ -207,19 +173,20 @@ namespace InputHandlers.Keyboard
         /// <param name="key"></param>
         /// <param name="keyboardModifier"></param>
         /// <param name="selectspecials">filters so that specials are included in the string if true</param>
-        /// <param name="selectalphas">filters so that alphas are selected if true</param>
-        /// <param name="selectnumerics">filters so that numerics are selected if true </param>
-        /// <param name="suppressspace">no spaces are output</param>
+        /// <param name="selectAlphas">filters so that alphas are selected if true</param>
+        /// <param name="selectNumerics">filters so that numerics are selected if true </param>
+        /// <param name="suppressSpace">no spaces are output</param>
+        /// <param name="treatNumpadAsNumeric">treat numpad as numeric keys</param>
         /// <returns></returns>
-        public static string Display(this Keys key, KeyboardModifier keyboardModifier, bool selectspecials, bool selectalphas,
-            bool selectnumerics, bool suppressspace, bool treatNumpadAsNumeric = true)
+        public static string Display(this Keys key, KeyboardModifier keyboardModifier, bool selectspecials, bool selectAlphas,
+            bool selectNumerics, bool suppressSpace, bool treatNumpadAsNumeric = true)
         {
-            if (IsKeySpace(key) && !suppressspace)
+            if (IsKeySpace(key) && !suppressSpace)
                 return " ";
 
-            if ((IsKeyAlpha(key) && selectalphas)
-                || (IsKeyNumber(key) && selectnumerics)
-                || (treatNumpadAsNumeric && IsKeyNumberpad(key) && selectnumerics)
+            if ((IsKeyAlpha(key) && selectAlphas)
+                || (IsKeyNumber(key) && selectNumerics)
+                || (treatNumpadAsNumeric && IsKeyNumberpad(key) && selectNumerics)
                 || (selectspecials 
                     && ((!IsKeyAlpha(key) && !IsKeyNumeric(key))
                     || (IsKeyNumber(key) && IsShiftDown(keyboardModifier)))))
@@ -239,20 +206,20 @@ namespace InputHandlers.Keyboard
         /// <summary>
         /// Gets KeyboardModifier flags indicating which "modifier" keys are down (control, shift, alt)
         /// </summary>
-        /// <param name="keyboardState">keyboard state to test</param>
+        /// <param name="keys">list of keys to test</param>
         /// <returns>bit field with modifier keys flagged</returns>
-        public static KeyboardModifier GetModifiers(this KeyboardState keyboardState)
+        public static KeyboardModifier GetModifiers(this Keys[] keys)
         {
-            var mod = KeyboardModifier.None;
-            var klist = keyboardState.GetPressedKeys();
-            foreach (var dwn in klist)
+            var keyboardModifier = KeyboardModifier.None;
+
+            foreach (var key in keys)
             {
-                mod = mod | IsShiftModifier(dwn);
-                mod = mod | IsAltModifier(dwn);
-                mod = mod | IsCtrlModifier(dwn);
+                keyboardModifier = keyboardModifier | IsShiftModifier(key);
+                keyboardModifier = keyboardModifier | IsAltModifier(key);
+                keyboardModifier = keyboardModifier | IsCtrlModifier(key);
             }
 
-            return mod;
+            return keyboardModifier;
         }
 
         private static readonly string[] unshiftedKeys =
