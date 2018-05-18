@@ -327,6 +327,14 @@ namespace InputHandlers.Tests
                     Arg.Is<KeyboardModifier>(k => k == KeyboardModifier.None)
                 );
 
+            _keyboardHandler
+                .DidNotReceive()
+                .HandleKeyboardKeyDown(
+                    Arg.Any<Keys[]>(),
+                    Arg.Is(oldKey),
+                    Arg.Is<KeyboardModifier>(k => k == KeyboardModifier.None)
+                );
+
             _keyboardHandler.DidNotReceive().HandleKeyboardKeyLost(Arg.Any<Keys[]>(), Arg.Any<KeyboardModifier>());
             _keyboardHandler.DidNotReceive().HandleKeyboardKeyRepeat(Arg.Any<Keys>(), Arg.Any<KeyboardModifier>());
             _keyboardHandler.DidNotReceive().HandleKeyboardKeysReleased();
@@ -732,6 +740,22 @@ namespace InputHandlers.Tests
                 .HandleKeyboardKeyDown(
                     Arg.Is<Keys[]>(k => AssertKeysMatch(k, key, Keys.B, Keys.D, Keys.E)),
                     Arg.Is(Keys.E),
+                    Arg.Is<KeyboardModifier>(k => k == KeyboardModifier.None)
+                );
+
+            _keyboardHandler
+                .DidNotReceive()
+                .HandleKeyboardKeyDown(
+                    Arg.Any<Keys[]>(),
+                    Arg.Is(key),
+                    Arg.Is<KeyboardModifier>(k => k == KeyboardModifier.None)
+                );
+
+            _keyboardHandler
+                .DidNotReceive()
+                .HandleKeyboardKeyDown(
+                    Arg.Any<Keys[]>(),
+                    Arg.Is(Keys.B),
                     Arg.Is<KeyboardModifier>(k => k == KeyboardModifier.None)
                 );
 

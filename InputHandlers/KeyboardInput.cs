@@ -231,7 +231,7 @@ namespace InputHandlers.Keyboard
 
                 _elapsedTimeSinceKeysChanged = _elapsedTimeSinceKeysChanged = keyboardInput.StopwatchProvider.Elapsed;
 
-                foreach (var newkey in keyDelta.NewKeyList)
+                foreach (var newkey in keyDelta.NewKeyDelta)
                 {
                     keyboardInput.CallHandleKeyboardKeyDown(keyDelta.NewKeyList, newkey, keyDelta.NewModifiers);
                 }

@@ -29,29 +29,9 @@ namespace InputHandlers
             _stopwatch.Reset();
         }
 
-        public void Restart()
-        {
-            _stopwatch.Restart();
-        }
-
-        public bool IsRunning
-        {
-            get { return _stopwatch.IsRunning; }
-        }
-
         public TimeSpan Elapsed
         {
             get { return _stopwatch.Elapsed; }
-        }
-
-        public long ElapsedMilliseconds
-        {
-            get { return _stopwatch.ElapsedMilliseconds; }
-        }
-
-        public long ElapsedTicks
-        {
-            get { return _stopwatch.ElapsedTicks; }
         }
     }
 }

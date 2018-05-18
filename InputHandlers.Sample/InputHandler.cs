@@ -244,42 +244,42 @@ namespace InputHandlers.Sample
             _mouseLabels[MouseLabelTypes.CurrentState].Text = "Current State: " + mouseInput.CurrentStateAsString();
             _keyboardLabels[KeyboardLabelTypes.CurrentState].Text = "Current State: " + keyboardInput.GetCurrentStateTypeName();
 
-            foreach (var sl in _mouseLabels.Values)
-                sl.Update(gameTime, _realTimer);
+            foreach (var label in _mouseLabels.Values)
+                label.Update(gameTime, _realTimer);
 
-            foreach (var sl in _keyboardLabels.Values)
-                sl.Update(gameTime, _realTimer);
+            foreach (var label in _keyboardLabels.Values)
+                label.Update(gameTime, _realTimer);
         }
 
         public void DrawLabels(SpriteBatch spriteBatch, SpriteFont spriteFont)
         {
-            foreach (var sl in _mouseLabels.Values)
-                sl.Draw(spriteBatch, spriteFont);
+            foreach (var label in _mouseLabels.Values)
+                label.Draw(spriteBatch, spriteFont);
 
-            foreach (var sl in _keyboardLabels.Values)
-                sl.Draw(spriteBatch, spriteFont);
+            foreach (var label in _keyboardLabels.Values)
+                label.Draw(spriteBatch, spriteFont);
         }
 
-        public void WriteTextToTextbox(Keys focus, KeyboardModifier m)
+        public void WriteTextToTextbox(Keys focus, KeyboardModifier keyboardModifier)
         {
-            _keyboardLabels[KeyboardLabelTypes.RunningKeys].Text += focus.Display(m);
+            _keyboardLabels[KeyboardLabelTypes.RunningKeys].Text += focus.Display(keyboardModifier);
 
             if ((focus == Keys.Back) && (_keyboardLabels[KeyboardLabelTypes.RunningKeys].Text.Length > 22))
                 _keyboardLabels[KeyboardLabelTypes.RunningKeys].Text = _keyboardLabels[KeyboardLabelTypes.RunningKeys].Text.Remove(_keyboardLabels[KeyboardLabelTypes.RunningKeys].Text.Length - 1, 1);
         }
 
-        public void WriteCurrentKeysToTextbox(Keys[] klist, KeyboardModifier m)
+        public void WriteCurrentKeysToTextbox(Keys[] keyList, KeyboardModifier keyboardModifier)
         {
             // Note - sometimes more than 2 keys wont register.  See this for explanation of keyboard hardware limitations:
             // http://blogs.msdn.com/shawnhar/archive/2007/03/28/keyboards-suck.aspx
             _keyboardLabels[KeyboardLabelTypes.Example].Text = "Current Keys: ";
-            foreach (var k in klist)
+            foreach (var k in keyList)
                 _keyboardLabels[KeyboardLabelTypes.Example].Text += k.ToString();
-            if ((KeyboardModifier.Alt & m) == KeyboardModifier.Alt)
+            if ((KeyboardModifier.Alt & keyboardModifier) == KeyboardModifier.Alt)
                 _keyboardLabels[KeyboardLabelTypes.Example].Text += " +Alt ";
-            if ((KeyboardModifier.Shift & m) == KeyboardModifier.Shift)
+            if ((KeyboardModifier.Shift & keyboardModifier) == KeyboardModifier.Shift)
                 _keyboardLabels[KeyboardLabelTypes.Example].Text += " +Shift ";
-            if ((KeyboardModifier.Ctrl & m) == KeyboardModifier.Ctrl)
+            if ((KeyboardModifier.Ctrl & keyboardModifier) == KeyboardModifier.Ctrl)
                 _keyboardLabels[KeyboardLabelTypes.Example].Text += " +Ctrl ";
         }
     }
