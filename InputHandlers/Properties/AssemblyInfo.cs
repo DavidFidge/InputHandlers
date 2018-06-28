@@ -5,8 +5,8 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("InputHandlers")]
-[assembly: AssemblyProduct("InputHandlers")]
+[assembly: AssemblyTitle("InputHandlers for MonoGame")]
+[assembly: AssemblyProduct("InputHandlers for MonoGame")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyDescription("A library for handling mouse and keyboard input in MonoGame projects")]
 [assembly: AssemblyCompany("David Fidge")]

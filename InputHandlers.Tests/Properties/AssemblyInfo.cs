@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("InputHandlers.Tests")]
+[assembly: AssemblyTitle("InputHandlers for MonoGame Unit Tests")]
 [assembly: AssemblyDescription("Unit tests for InputHandlers library")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("David Fidge")]
-[assembly: AssemblyProduct("InputHandlers.Tests")]
+[assembly: AssemblyProduct("InputHandlers for MonoGame Unit Tests")]
 [assembly: AssemblyCopyright("Copyright ©  2018")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
