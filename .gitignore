@@ -3,3 +3,4 @@
 [Pp]ackages/
 .vs/
 *.DotSettings.user
+*.nupkg

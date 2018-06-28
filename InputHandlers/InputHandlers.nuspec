@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>$id$</id>
+    <version>$version$</version>
+    <title>$title$</title>
+    <authors>$author$</authors>
+    <owners>$author$</owners>
+    <licenseUrl>https://github.com/DireAussie/InputHandlers/blob/master/LICENSE</licenseUrl>
+    <projectUrl>https://github.com/DireAussie/InputHandlers</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>$description$</description>
+    <releaseNotes>Initial Release</releaseNotes>
+    <copyright>Copyright 2018</copyright>
+	<dependencies>
+		<dependency id="MonoGame.Framework.WindowsDX" version="3.6.0.1625" />
+	</dependencies>
+  </metadata>
+</package>
