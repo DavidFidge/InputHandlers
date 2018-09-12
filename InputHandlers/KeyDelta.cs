@@ -7,7 +7,7 @@ namespace InputHandlers.Keyboard
 {
     internal class KeyDelta
     {
-        private readonly List<Keys> _unmanagedKeys;
+        private readonly IList<Keys> _unmanagedKeys;
         private Keys[] _lastKeyList;
         private Keys[] _newKeyList;
         private bool _requiresUpdate;
@@ -22,11 +22,11 @@ namespace InputHandlers.Keyboard
             get { return _newKeyList; }
         }
 
-        public List<Keys> NewKeyDelta { get; private set; }
+        public IList<Keys> NewKeyDelta { get; private set; }
 
         public KeyboardModifier NewModifiers { get; private set; }
 
-        public KeyDelta(List<Keys> unmanagedKeys)
+        public KeyDelta(IList<Keys> unmanagedKeys)
         {
             _lastKeyList = new Keys[0];
             _newKeyList = new Keys[0];

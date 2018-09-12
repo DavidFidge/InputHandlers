@@ -9,7 +9,7 @@ using Microsoft.Xna.Framework.Input;
 
 namespace InputHandlers.Keyboard
 {
-    public class KeyboardInput
+    public class KeyboardInput : IKeyboardInput
     {
         private readonly StateMachine<KeyboardInput> _keyboardStateMachine;
         private readonly KeyboardKeyDownState _keyboardKeyDownState;
@@ -24,7 +24,7 @@ namespace InputHandlers.Keyboard
         public KeyboardState OldKeyboardState { get; private set; }
         public KeyboardState CurrentKeyboardState { get; private set; }
 
-        public List<Keys> UnmanagedKeys { get; private set; }
+        public IList<Keys> UnmanagedKeys { get; private set; }
 
         public IStopwatchProvider StopwatchProvider { get; private set; }
 

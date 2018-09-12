@@ -9,7 +9,7 @@ using Microsoft.Xna.Framework.Input;
 
 namespace InputHandlers.Mouse
 {
-    public class MouseInput
+    public class MouseInput : IMouseInput
     {
         private readonly StateMachine<MouseInput> _mouseStateMachine;
         private readonly MouseStationaryState _mouseStationaryState;

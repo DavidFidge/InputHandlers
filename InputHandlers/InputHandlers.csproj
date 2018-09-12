@@ -44,7 +44,9 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="IKeyboardHandler.cs" />
+    <Compile Include="IKeyboardInput.cs" />
     <Compile Include="IMouseHandler.cs" />
+    <Compile Include="IMouseInput.cs" />
     <Compile Include="IStopwatchProvider.cs" />
     <Compile Include="KeyboardInput.cs" />
     <Compile Include="KeyDelta.cs" />
