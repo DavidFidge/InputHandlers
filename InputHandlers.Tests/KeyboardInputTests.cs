@@ -7,6 +7,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.Xna.Framework.Input;
 
 using NSubstitute;
+using NSubstitute.ClearExtensions;
 
 using KeyboardInput = InputHandlers.Keyboard.KeyboardInput;
 
@@ -44,7 +45,9 @@ namespace InputHandlers.Tests
             _keyboardInput.Poll(keyboardState);
 
             // Assert
-            _keyboardHandler.DidNotReceive().HandleKeyboardKeyDown(Arg.Any<Keys[]>(), Arg.Any<Keys>(), Arg.Any<KeyboardModifier>());
+            _keyboardHandler
+                .DidNotReceive()
+                .HandleKeyboardKeyDown(Arg.Any<Keys[]>(), Arg.Any<Keys>(), Arg.Any<KeyboardModifier>());
 
             secondKeyboardHandler
                 .Received()
@@ -53,6 +56,142 @@ namespace InputHandlers.Tests
                     Arg.Is(Keys.A),
                     Arg.Is<KeyboardModifier>(k => k == KeyboardModifier.None)
                 );
+        }
+
+        [TestMethod]
+        public void KeyboardInput_Can_Subscribe_While_Within_Handler_Of_Another_Subscription()
+        {
+            // Arrange
+            var secondKeyboardHandler = Substitute.For<IKeyboardHandler>();
+
+            _keyboardHandler
+                .When(k => k.HandleKeyboardKeyDown(Arg.Any<Keys[]>(), Arg.Any<Keys>(), Arg.Any<KeyboardModifier>()))
+                .Do(ci => _keyboardInput.Subscribe(secondKeyboardHandler));
+
+            var keyboardState = new KeyboardState(Keys.A);
+
+            // Act
+            _keyboardInput.Poll(keyboardState);
+
+            // Assert
+            _keyboardHandler
+                .Received()
+                .HandleKeyboardKeyDown(
+                    Arg.Is<Keys[]>(k => AssertKeysMatch(k, Keys.A)),
+                    Arg.Is(Keys.A),
+                    Arg.Is<KeyboardModifier>(k => k == KeyboardModifier.None)
+                );
+
+            secondKeyboardHandler
+                .DidNotReceive()
+                .HandleKeyboardKeyDown(Arg.Any<Keys[]>(), Arg.Any<Keys>(), Arg.Any<KeyboardModifier>());
+
+            // Arrange - second handler should now be subscribed
+            _keyboardHandler.ClearSubstitute();
+            keyboardState = new KeyboardState(Keys.B);
+            
+            // Act
+            _keyboardInput.Poll(keyboardState);
+
+            // Assert
+            _keyboardHandler
+                .Received()
+                .HandleKeyboardKeyDown(
+                    Arg.Is<Keys[]>(k => AssertKeysMatch(k, Keys.B)),
+                    Arg.Is(Keys.B),
+                    Arg.Is<KeyboardModifier>(k => k == KeyboardModifier.None)
+                );
+
+            secondKeyboardHandler
+                .Received()
+                .HandleKeyboardKeyDown(
+                    Arg.Is<Keys[]>(k => AssertKeysMatch(k, Keys.B)),
+                    Arg.Is(Keys.B),
+                    Arg.Is<KeyboardModifier>(k => k == KeyboardModifier.None)
+                );
+        }
+
+        [TestMethod]
+        public void KeyboardInput_Can_Unsubscribe_While_Within_Handler_Of_Another_Subscription()
+        {
+            // Arrange
+            var secondKeyboardHandler = Substitute.For<IKeyboardHandler>();
+
+            _keyboardInput.Subscribe(secondKeyboardHandler);
+
+            _keyboardHandler
+                .When(k => k.HandleKeyboardKeyDown(Arg.Any<Keys[]>(), Arg.Any<Keys>(), Arg.Any<KeyboardModifier>()))
+                .Do(ci => _keyboardInput.Unsubscribe(secondKeyboardHandler));
+
+            var keyboardState = new KeyboardState(Keys.A);
+
+            // Act
+            _keyboardInput.Poll(keyboardState);
+
+            // Assert
+            _keyboardHandler
+                .Received()
+                .HandleKeyboardKeyDown(
+                    Arg.Is<Keys[]>(k => AssertKeysMatch(k, Keys.A)),
+                    Arg.Is(Keys.A),
+                    Arg.Is<KeyboardModifier>(k => k == KeyboardModifier.None)
+                );
+
+            secondKeyboardHandler
+                .Received()
+                .HandleKeyboardKeyDown(
+                    Arg.Is<Keys[]>(k => AssertKeysMatch(k, Keys.A)),
+                    Arg.Is(Keys.A),
+                    Arg.Is<KeyboardModifier>(k => k == KeyboardModifier.None)
+                );
+
+            // Arrange - second handler should now be unsubscribed
+            _keyboardHandler.ClearSubstitute();
+            secondKeyboardHandler.ClearReceivedCalls();
+
+            keyboardState = new KeyboardState(Keys.B);
+
+            // Act
+            _keyboardInput.Poll(keyboardState);
+
+            // Assert
+            _keyboardHandler
+                .Received()
+                .HandleKeyboardKeyDown(
+                    Arg.Is<Keys[]>(k => AssertKeysMatch(k, Keys.B)),
+                    Arg.Is(Keys.B),
+                    Arg.Is<KeyboardModifier>(k => k == KeyboardModifier.None)
+                );
+
+            secondKeyboardHandler
+                .DidNotReceive()
+                .HandleKeyboardKeyDown(Arg.Any<Keys[]>(), Arg.Any<Keys>(), Arg.Any<KeyboardModifier>());
+        }
+
+        [TestMethod]
+        public void KeyboardInput_Should_Ignore_Second_Subscription_Of_Same_Handler()
+        {
+            // Arrange
+            _keyboardInput.Subscribe(_keyboardHandler);
+            var keyboardState = new KeyboardState(Keys.A);
+
+            // Act
+            _keyboardInput.Poll(keyboardState);
+
+            // Assert
+            Assert.AreEqual(1, _keyboardHandler.ReceivedCalls().Count());
+
+            _keyboardHandler
+                .Received()
+                .HandleKeyboardKeyDown(
+                    Arg.Is<Keys[]>(k => AssertKeysMatch(k, Keys.A)),
+                    Arg.Is(Keys.A),
+                    Arg.Is<KeyboardModifier>(k => k == KeyboardModifier.None)
+                );
+
+            _keyboardHandler.DidNotReceive().HandleKeyboardKeyLost(Arg.Any<Keys[]>(), Arg.Any<KeyboardModifier>());
+            _keyboardHandler.DidNotReceive().HandleKeyboardKeyRepeat(Arg.Any<Keys>(), Arg.Any<KeyboardModifier>());
+            _keyboardHandler.DidNotReceive().HandleKeyboardKeysReleased();
         }
 
         [TestMethod]
@@ -72,12 +211,12 @@ namespace InputHandlers.Tests
         }
 
         [TestMethod]
-        public void MouseInput_Should_Increment_UpdateNumber_On_Poll()
+        public void KeyboardInput_Should_Increment_UpdateNumber_On_Poll()
         {
             // Arrange
-            var secondMouseHandler = Substitute.For<IKeyboardHandler>();
+            var secondKeyboardHandler = Substitute.For<IKeyboardHandler>();
 
-            _keyboardInput.Subscribe(secondMouseHandler);
+            _keyboardInput.Subscribe(secondKeyboardHandler);
 
             var keyboardState = new KeyboardState();
 

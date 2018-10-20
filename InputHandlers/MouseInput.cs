@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -12,35 +13,37 @@ namespace InputHandlers.Mouse
     public class MouseInput : IMouseInput
     {
         private readonly StateMachine<MouseInput> _mouseStateMachine;
-        private readonly MouseStationaryState _mouseStationaryState;
-        private readonly MouseMovingState _mouseMovingState;
-        private readonly MouseLeftDownState _mouseLeftDownState;
-        private readonly MouseLeftDraggingState _mouseLeftDraggingState;
-        private readonly MouseRightDownState _mouseRightDownState;
-        private readonly MouseRightDraggingState _mouseRightDraggingState;
-        private readonly MouseMiddleDownState _mouseMiddleDownState;
-        private readonly MouseMiddleDraggingState _mouseMiddleDraggingState;
-        private readonly List<IMouseHandler> _mouseHandlers;
+        private readonly MouseStationaryState _mouseStationaryState = new MouseStationaryState();
+        private readonly MouseMovingState _mouseMovingState = new MouseMovingState();
+        private readonly MouseLeftDownState _mouseLeftDownState = new MouseLeftDownState();
+        private readonly MouseLeftDraggingState _mouseLeftDraggingState = new MouseLeftDraggingState();
+        private readonly MouseRightDownState _mouseRightDownState = new MouseRightDownState();
+        private readonly MouseRightDraggingState _mouseRightDraggingState = new MouseRightDraggingState();
+        private readonly MouseMiddleDownState _mouseMiddleDownState = new MouseMiddleDownState();
+        private readonly MouseMiddleDraggingState _mouseMiddleDraggingState = new MouseMiddleDraggingState();
+        private readonly HashSet<IMouseHandler> _mouseHandlerSubscriptions = new HashSet<IMouseHandler>();
+        private readonly HashSet<IMouseHandler> _pendingAddedSubscriptions = new HashSet<IMouseHandler>();
+        private readonly HashSet<IMouseHandler> _pendingRemovedSubscriptions = new HashSet<IMouseHandler>();
 
         public MouseState OldMouseState { get; private set; }
         public MouseState CurrentMouseState { get; private set; }
         public MouseState DragOriginPosition { get; private set; }
         public IStopwatchProvider StopwatchProvider { get; private set; }
-        public bool IsLeftButtonEnabled { get; set; }
-        public bool IsMiddleButtonEnabled { get; set; }
-        public bool IsRightButtonEnabled { get; set; }
+        public bool IsLeftButtonEnabled { get; set; } = true;
+        public bool IsMiddleButtonEnabled { get; set; } = true;
+        public bool IsRightButtonEnabled { get; set; } = true;
 
         /// <summary>
         /// DragVariance is a fudging factor for detecting the difference between mouse clicks and mouse drags.
         /// This is because a fast user may do a mouse click while slightly moving the mouse between mouse down and mouse up.
         /// If it wasnt for this fudging factor then it would go into drag mode which isnt what the user probably wanted.
         /// </summary>
-        public int DragVariance { get; set; }
+        public int DragVariance { get; set; } = 10;
 
         /// <summary>
         /// If time between clicks in milliseconds is less than this value then it is considered a double click
         /// </summary>
-        public int DoubleClickDetectionTimeDelay { get; set; }
+        public int DoubleClickDetectionTimeDelay { get; set; } = 400;
 
         /// <summary>
         /// This is incremented on each update.  This can be used to determine whether a sequence of events have occurred within the same update time. 
@@ -53,24 +56,6 @@ namespace InputHandlers.Mouse
 
         public MouseInput(IStopwatchProvider stopwatchProvider)
         {
-            IsLeftButtonEnabled = true;
-            IsMiddleButtonEnabled = true;
-            IsRightButtonEnabled = true;
-
-            _mouseHandlers = new List<IMouseHandler>();
-            _mouseStationaryState = new MouseStationaryState();
-            _mouseMovingState = new MouseMovingState();
-            _mouseLeftDownState = new MouseLeftDownState();
-            _mouseLeftDraggingState = new MouseLeftDraggingState();
-            _mouseRightDownState = new MouseRightDownState();
-            _mouseRightDraggingState = new MouseRightDraggingState();
-            _mouseMiddleDownState = new MouseMiddleDownState();
-            _mouseMiddleDraggingState = new MouseMiddleDraggingState();
-
-            UpdateNumber = 0;
-            DragVariance = 10;
-            DoubleClickDetectionTimeDelay = 400;
-
             StopwatchProvider = stopwatchProvider;
             StopwatchProvider.Start();
 
@@ -82,18 +67,18 @@ namespace InputHandlers.Mouse
         public void Subscribe(IMouseHandler mouseHandler)
         {
             if (mouseHandler != null)
-                _mouseHandlers.Add(mouseHandler);
+                _pendingAddedSubscriptions.Add(mouseHandler);
         }
 
         public void Unsubscribe(IMouseHandler mouseHandler)
         {
             if (mouseHandler != null)
-                _mouseHandlers.Remove(mouseHandler);
+                _pendingRemovedSubscriptions.Add(mouseHandler);
         }
 
         private void CallHandleMouseScrollWheelMove(MouseState m, int diff)
         {
-            foreach (var mouseHandler in _mouseHandlers)
+            foreach (var mouseHandler in _mouseHandlerSubscriptions)
             {
                 mouseHandler.HandleMouseScrollWheelMove(m, diff);
             }
@@ -101,47 +86,47 @@ namespace InputHandlers.Mouse
 
         private void CallHandleMouseMoving(MouseState m, MouseState origin)
         {
-            foreach (var mouseHandler in _mouseHandlers)
+            foreach (var mouseHandler in _mouseHandlerSubscriptions)
             {
                 mouseHandler.HandleMouseMoving(m, origin);
             }
         }
 
-        private void CallHandleLeftMouseClick(MouseState m)
+        private void CallHandleLeftMouseClick(MouseState m, MouseState origin)
         {
-            foreach (var mouseHandler in _mouseHandlers)
+            foreach (var mouseHandler in _mouseHandlerSubscriptions)
             {
-                mouseHandler.HandleLeftMouseClick(m);
+                mouseHandler.HandleLeftMouseClick(m, origin);
             }
         }
 
-        private void CallHandleLeftMouseDoubleClick(MouseState m)
+        private void CallHandleLeftMouseDoubleClick(MouseState m, MouseState origin)
         {
-            foreach (var mouseHandler in _mouseHandlers)
+            foreach (var mouseHandler in _mouseHandlerSubscriptions)
             {
-                mouseHandler.HandleLeftMouseDoubleClick(m);
+                mouseHandler.HandleLeftMouseDoubleClick(m, origin);
             }
         }
 
         private void CallHandleLeftMouseDown(MouseState m)
         {
-            foreach (var mouseHandler in _mouseHandlers)
+            foreach (var mouseHandler in _mouseHandlerSubscriptions)
             {
                 mouseHandler.HandleLeftMouseDown(m);
             }
         }
 
-        private void CallHandleLeftMouseUp(MouseState m)
+        private void CallHandleLeftMouseUp(MouseState m, MouseState origin)
         {
-            foreach (var mouseHandler in _mouseHandlers)
+            foreach (var mouseHandler in _mouseHandlerSubscriptions)
             {
-                mouseHandler.HandleLeftMouseUp(m);
+                mouseHandler.HandleLeftMouseUp(m, origin);
             }
         }
 
         private void CallHandleLeftMouseDragging(MouseState m, MouseState origin)
         {
-            foreach (var mouseHandler in _mouseHandlers)
+            foreach (var mouseHandler in _mouseHandlerSubscriptions)
             {
                 mouseHandler.HandleLeftMouseDragging(m, origin);
             }
@@ -149,47 +134,47 @@ namespace InputHandlers.Mouse
 
         private void CallHandleLeftMouseDragDone(MouseState m, MouseState origin)
         {
-            foreach (var mouseHandler in _mouseHandlers)
+            foreach (var mouseHandler in _mouseHandlerSubscriptions)
             {
                 mouseHandler.HandleLeftMouseDragDone(m, origin);
             }
         }
 
-        private void CallHandleRightMouseClick(MouseState m)
+        private void CallHandleRightMouseClick(MouseState m, MouseState origin)
         {
-            foreach (var mouseHandler in _mouseHandlers)
+            foreach (var mouseHandler in _mouseHandlerSubscriptions)
             {
-                mouseHandler.HandleRightMouseClick(m);
+                mouseHandler.HandleRightMouseClick(m, origin);
             }
         }
 
-        private void CallHandleRightMouseDoubleClick(MouseState m)
+        private void CallHandleRightMouseDoubleClick(MouseState m, MouseState origin)
         {
-            foreach (var mouseHandler in _mouseHandlers)
+            foreach (var mouseHandler in _mouseHandlerSubscriptions)
             {
-                mouseHandler.HandleRightMouseDoubleClick(m);
+                mouseHandler.HandleRightMouseDoubleClick(m, origin);
             }
         }
 
         private void CallHandleRightMouseDown(MouseState m)
         {
-            foreach (var mouseHandler in _mouseHandlers)
+            foreach (var mouseHandler in _mouseHandlerSubscriptions)
             {
                 mouseHandler.HandleRightMouseDown(m);
             }
         }
 
-        private void CallHandleRightMouseUp(MouseState m)
+        private void CallHandleRightMouseUp(MouseState m, MouseState origin)
         {
-            foreach (var mouseHandler in _mouseHandlers)
+            foreach (var mouseHandler in _mouseHandlerSubscriptions)
             {
-                mouseHandler.HandleRightMouseUp(m);
+                mouseHandler.HandleRightMouseUp(m, origin);
             }
         }
 
         private void CallHandleRightMouseDragging(MouseState m, MouseState origin)
         {
-            foreach (var mouseHandler in _mouseHandlers)
+            foreach (var mouseHandler in _mouseHandlerSubscriptions)
             {
                 mouseHandler.HandleRightMouseDragging(m, origin);
             }
@@ -197,47 +182,47 @@ namespace InputHandlers.Mouse
 
         private void CallHandleRightMouseDragDone(MouseState m, MouseState origin)
         {
-            foreach (var mouseHandler in _mouseHandlers)
+            foreach (var mouseHandler in _mouseHandlerSubscriptions)
             {
                 mouseHandler.HandleRightMouseDragDone(m, origin);
             }
         }
 
-        private void CallHandleMiddleMouseClick(MouseState m)
+        private void CallHandleMiddleMouseClick(MouseState m, MouseState origin)
         {
-            foreach (var mouseHandler in _mouseHandlers)
+            foreach (var mouseHandler in _mouseHandlerSubscriptions)
             {
-                mouseHandler.HandleMiddleMouseClick(m);
+                mouseHandler.HandleMiddleMouseClick(m, origin);
             }
         }
 
-        private void CallHandleMiddleMouseDoubleClick(MouseState m)
+        private void CallHandleMiddleMouseDoubleClick(MouseState m, MouseState origin)
         {
-            foreach (var mouseHandler in _mouseHandlers)
+            foreach (var mouseHandler in _mouseHandlerSubscriptions)
             {
-                mouseHandler.HandleMiddleMouseDoubleClick(m);
+                mouseHandler.HandleMiddleMouseDoubleClick(m, origin);
             }
         }
 
         private void CallHandleMiddleMouseDown(MouseState m)
         {
-            foreach (var mouseHandler in _mouseHandlers)
+            foreach (var mouseHandler in _mouseHandlerSubscriptions)
             {
                 mouseHandler.HandleMiddleMouseDown(m);
             }
         }
 
-        private void CallHandleMiddleMouseUp(MouseState m)
+        private void CallHandleMiddleMouseUp(MouseState m, MouseState origin)
         {
-            foreach (var mouseHandler in _mouseHandlers)
+            foreach (var mouseHandler in _mouseHandlerSubscriptions)
             {
-                mouseHandler.HandleMiddleMouseUp(m);
+                mouseHandler.HandleMiddleMouseUp(m, origin);
             }
         }
 
         private void CallHandleMiddleMouseDragging(MouseState m, MouseState origin)
         {
-            foreach (var mouseHandler in _mouseHandlers)
+            foreach (var mouseHandler in _mouseHandlerSubscriptions)
             {
                 mouseHandler.HandleMiddleMouseDragging(m, origin);
             }
@@ -245,7 +230,7 @@ namespace InputHandlers.Mouse
 
         private void CallHandleMiddleMouseDragDone(MouseState m, MouseState origin)
         {
-            foreach (var mouseHandler in _mouseHandlers)
+            foreach (var mouseHandler in _mouseHandlerSubscriptions)
             {
                 mouseHandler.HandleMiddleMouseDragDone(m, origin);
             }
@@ -267,7 +252,21 @@ namespace InputHandlers.Mouse
 
             CheckScrollWheel();
 
+            UpdateSubscriptions();
+
             _mouseStateMachine.Update();
+        }
+
+        private void UpdateSubscriptions()
+        {
+            foreach (var pendingAddedSubscription in _pendingAddedSubscriptions)
+                _mouseHandlerSubscriptions.Add(pendingAddedSubscription);
+
+            foreach (var pendingRemovedSubscriptions in _pendingRemovedSubscriptions)
+                _mouseHandlerSubscriptions.Remove(pendingRemovedSubscriptions);
+
+            _pendingAddedSubscriptions.Clear();
+            _pendingRemovedSubscriptions.Clear();
         }
 
         /// <summary>
@@ -394,7 +393,7 @@ namespace InputHandlers.Mouse
             protected void EnterInternal(
                 MouseInput mouseInput,
                 Action<MouseState> mouseDownAction,
-                Action<MouseState> mouseDoubleClickAction)
+                Action<MouseState, MouseState> mouseDoubleClickAction)
             {
                 mouseInput.DragOriginPosition = mouseInput.CurrentMouseState;
 
@@ -409,7 +408,7 @@ namespace InputHandlers.Mouse
 
                     if (_detectDoubleClickTime >= -mouseInput.DoubleClickDetectionTimeDelay)
                     {
-                        mouseDoubleClickAction(mouseInput.DragOriginPosition);
+                        mouseDoubleClickAction(mouseInput.CurrentMouseState, mouseInput.DragOriginPosition);
 
                         _detectDoubleClickTime = double.NegativeInfinity;
 
@@ -425,8 +424,8 @@ namespace InputHandlers.Mouse
 
             protected void ExecuteInternal(
                 MouseInput mouseInput,
-                Action<MouseState> mouseUpAction,
-                Action<MouseState> mouseClickAction,
+                Action<MouseState, MouseState> mouseUpAction,
+                Action<MouseState, MouseState> mouseClickAction,
                 State<MouseInput> draggingState,
                 ButtonState buttonState
                 )
@@ -441,8 +440,8 @@ namespace InputHandlers.Mouse
                 }
                 else if (buttonState == ButtonState.Released)
                 {
-                    mouseUpAction(mouseInput.DragOriginPosition);
-                    mouseClickAction(mouseInput.DragOriginPosition);
+                    mouseUpAction(mouseInput.CurrentMouseState, mouseInput.DragOriginPosition);
+                    mouseClickAction(mouseInput.CurrentMouseState, mouseInput.DragOriginPosition);
                     mouseInput._mouseStateMachine.ChangeState(mouseInput._mouseStationaryState);
                 }
                 else if (mouseInput.IsStartingDragDrop())
@@ -474,7 +473,7 @@ namespace InputHandlers.Mouse
 
             protected void ExecuteInternal(
                 MouseInput mouseInput,
-                Action<MouseState> mouseUpAction,
+                Action<MouseState, MouseState> mouseUpAction,
                 Action<MouseState, MouseState> mouseDragging,
                 Action<MouseState, MouseState> mouseDragDone,
                 ButtonState buttonState
@@ -482,7 +481,7 @@ namespace InputHandlers.Mouse
             {
                 if (buttonState == ButtonState.Released)
                 {
-                    mouseUpAction(mouseInput.CurrentMouseState);
+                    mouseUpAction(mouseInput.CurrentMouseState, mouseInput.DragOriginPosition);
                     mouseDragDone(mouseInput.CurrentMouseState, mouseInput.DragOriginPosition);
                     mouseInput._mouseStateMachine.ChangeState(mouseInput._mouseStationaryState);
                 }

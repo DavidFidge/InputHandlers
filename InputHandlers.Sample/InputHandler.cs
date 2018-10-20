@@ -90,12 +90,12 @@ namespace InputHandlers.Sample
             _mouseLabels[MouseLabelTypes.Moving].Activate();
         }
 
-        public void HandleLeftMouseClick(MouseState mouseState)
+        public void HandleLeftMouseClick(MouseState mouseState, MouseState originalMouseState)
         {
             _mouseLabels[MouseLabelTypes.LeftClick].HighlightRed(_realTimer);
         }
 
-        public void HandleLeftMouseDoubleClick(MouseState mouseState)
+        public void HandleLeftMouseDoubleClick(MouseState mouseState, MouseState originalMouseState)
         {
             _mouseLabels[MouseLabelTypes.LeftDoubleClick].HighlightRed(_realTimer);
         }
@@ -105,7 +105,7 @@ namespace InputHandlers.Sample
             _mouseLabels[MouseLabelTypes.LeftDown].Activate();
         }
 
-        public void HandleLeftMouseUp(MouseState mouseState)
+        public void HandleLeftMouseUp(MouseState mouseState, MouseState originalMouseState)
         {
             _mouseLabels[MouseLabelTypes.LeftDown].Deactivate();
             _mouseLabels[MouseLabelTypes.LeftUp].HighlightRed(_realTimer);
@@ -123,12 +123,12 @@ namespace InputHandlers.Sample
             _mouseLabels[MouseLabelTypes.LeftDraggingDone].HighlightRed(_realTimer);
         }
 
-        public void HandleRightMouseClick(MouseState mouseState)
+        public void HandleRightMouseClick(MouseState mouseState, MouseState originalMouseState)
         {
             _mouseLabels[MouseLabelTypes.RightClick].HighlightRed(_realTimer);
         }
 
-        public void HandleRightMouseDoubleClick(MouseState mouseState)
+        public void HandleRightMouseDoubleClick(MouseState mouseState, MouseState originalMouseState)
         {
             _mouseLabels[MouseLabelTypes.RightDoubleClick].HighlightRed(_realTimer);
         }
@@ -138,7 +138,7 @@ namespace InputHandlers.Sample
             _mouseLabels[MouseLabelTypes.RightDown].Activate();
         }
 
-        public void HandleRightMouseUp(MouseState mouseState)
+        public void HandleRightMouseUp(MouseState mouseState, MouseState originalMouseState)
         {
             _mouseLabels[MouseLabelTypes.RightDown].Deactivate();
             _mouseLabels[MouseLabelTypes.RightUp].HighlightRed(_realTimer);
@@ -156,12 +156,12 @@ namespace InputHandlers.Sample
             _mouseLabels[MouseLabelTypes.RightDraggingDone].HighlightRed(_realTimer);
         }
 
-        public void HandleMiddleMouseClick(MouseState mouseState)
+        public void HandleMiddleMouseClick(MouseState mouseState, MouseState originalMouseState)
         {
             _mouseLabels[MouseLabelTypes.MiddleClick].HighlightRed(_realTimer);
         }
 
-        public void HandleMiddleMouseDoubleClick(MouseState mouseState)
+        public void HandleMiddleMouseDoubleClick(MouseState mouseState, MouseState originalMouseState)
         {
             _mouseLabels[MouseLabelTypes.MiddleDoubleClick].HighlightRed(_realTimer);
         }
@@ -171,7 +171,7 @@ namespace InputHandlers.Sample
             _mouseLabels[MouseLabelTypes.MiddleDown].Activate();
         }
 
-        public void HandleMiddleMouseUp(MouseState mouseState)
+        public void HandleMiddleMouseUp(MouseState mouseState, MouseState originalMouseState)
         {
             _mouseLabels[MouseLabelTypes.MiddleDown].Deactivate();
             _mouseLabels[MouseLabelTypes.MiddleUp].HighlightRed(_realTimer);
@@ -239,7 +239,7 @@ namespace InputHandlers.Sample
             _keyboardLabels[KeyboardLabelTypes.KeyRepeat].Deactivate();
         }
 
-        public void UpdateLabelsAfterPoll(GameTime gameTime, MouseInput mouseInput, KeyboardInput keyboardInput)
+        public void UpdateLabelsAfterPoll(GameTime gameTime, MouseInput mouseInput, Keyboard.KeyboardInput keyboardInput)
         {
             _mouseLabels[MouseLabelTypes.CurrentState].Text = "Current State: " + mouseInput.CurrentStateAsString();
             _keyboardLabels[KeyboardLabelTypes.CurrentState].Text = "Current State: " + keyboardInput.GetCurrentStateTypeName();

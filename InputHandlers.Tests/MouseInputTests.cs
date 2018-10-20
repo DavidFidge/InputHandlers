@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 
 using InputHandlers.Mouse;
 
@@ -7,6 +8,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.Xna.Framework.Input;
 
 using NSubstitute;
+using NSubstitute.ClearExtensions;
 
 namespace InputHandlers.Tests
 {
@@ -38,19 +40,19 @@ namespace InputHandlers.Tests
 
             // Assert
             _mouseHandler.DidNotReceive().HandleMouseScrollWheelMove(Arg.Any<MouseState>(), Arg.Any<int>());
-            _mouseHandler.DidNotReceive().HandleLeftMouseClick(Arg.Any<MouseState>());
-            _mouseHandler.DidNotReceive().HandleLeftMouseDoubleClick(Arg.Any<MouseState>());
+            _mouseHandler.DidNotReceive().HandleLeftMouseClick(Arg.Any<MouseState>(), Arg.Any<MouseState>());
+            _mouseHandler.DidNotReceive().HandleLeftMouseDoubleClick(Arg.Any<MouseState>(), Arg.Any<MouseState>());
             _mouseHandler.DidNotReceive().HandleLeftMouseDown(Arg.Any<MouseState>());
             _mouseHandler.DidNotReceive().HandleLeftMouseDragDone(Arg.Any<MouseState>(), Arg.Any<MouseState>());
             _mouseHandler.DidNotReceive().HandleLeftMouseDragging(Arg.Any<MouseState>(), Arg.Any<MouseState>());
-            _mouseHandler.DidNotReceive().HandleLeftMouseUp(Arg.Any<MouseState>());
+            _mouseHandler.DidNotReceive().HandleLeftMouseUp(Arg.Any<MouseState>(), Arg.Any<MouseState>());
             _mouseHandler.DidNotReceive().HandleMouseMoving(Arg.Any<MouseState>(), Arg.Any<MouseState>());
-            _mouseHandler.DidNotReceive().HandleRightMouseClick(Arg.Any<MouseState>());
-            _mouseHandler.DidNotReceive().HandleRightMouseDoubleClick(Arg.Any<MouseState>());
+            _mouseHandler.DidNotReceive().HandleRightMouseClick(Arg.Any<MouseState>(), Arg.Any<MouseState>());
+            _mouseHandler.DidNotReceive().HandleRightMouseDoubleClick(Arg.Any<MouseState>(), Arg.Any<MouseState>());
             _mouseHandler.DidNotReceive().HandleRightMouseDown(Arg.Any<MouseState>());
             _mouseHandler.DidNotReceive().HandleRightMouseDragDone(Arg.Any<MouseState>(), Arg.Any<MouseState>());
             _mouseHandler.DidNotReceive().HandleRightMouseDragging(Arg.Any<MouseState>(), Arg.Any<MouseState>());
-            _mouseHandler.DidNotReceive().HandleRightMouseUp(Arg.Any<MouseState>());
+            _mouseHandler.DidNotReceive().HandleRightMouseUp(Arg.Any<MouseState>(), Arg.Any<MouseState>());
         }
 
         [TestMethod]
@@ -124,7 +126,7 @@ namespace InputHandlers.Tests
 
             _mouseInput.Poll(mouseStateReleased);
 
-            _mouseHandler.DidNotReceive().HandleLeftMouseUp(Arg.Any<MouseState>());
+            _mouseHandler.DidNotReceive().HandleLeftMouseUp(Arg.Any<MouseState>(), Arg.Any<MouseState>());
         }
 
         [TestMethod]
@@ -180,6 +182,134 @@ namespace InputHandlers.Tests
             // Assert
             _mouseHandler.DidNotReceive().HandleLeftMouseDown(Arg.Any<MouseState>());
             secondMouseHandler.Received().HandleLeftMouseDown(Arg.Is(mouseState));
+        }
+
+        [TestMethod]
+        public void MouseInput_Can_Subscribe_While_Within_Handler_Of_Another_Subscription()
+        {
+            // Arrange
+            var secondMouseHandler = Substitute.For<IMouseHandler>();
+
+            var mouseStateDown = new MouseState(
+                0,
+                0,
+                0,
+                ButtonState.Pressed,
+                ButtonState.Released,
+                ButtonState.Released,
+                ButtonState.Released,
+                ButtonState.Released
+            );
+
+            _mouseHandler
+                .When(k => k.HandleLeftMouseDown(Arg.Is(mouseStateDown)))
+                .Do(ci => _mouseInput.Subscribe(secondMouseHandler));
+
+            // Act
+            _mouseInput.Poll(mouseStateDown);
+
+            // Assert
+            _mouseHandler.Received().HandleLeftMouseDown(Arg.Is(mouseStateDown));
+            secondMouseHandler.DidNotReceive().HandleLeftMouseDown(Arg.Any<MouseState>());
+
+            // Arrange - second handler should now be subscribed
+            _mouseHandler.ClearSubstitute();
+
+            var mouseStateReleased = new MouseState(
+                0,
+                0,
+                0,
+                ButtonState.Released,
+                ButtonState.Released,
+                ButtonState.Released,
+                ButtonState.Released,
+                ButtonState.Released
+            );
+
+            // Act
+            _mouseInput.Poll(mouseStateReleased);
+
+            // Assert
+            _mouseHandler.Received().HandleLeftMouseUp(Arg.Is(mouseStateReleased), Arg.Is(mouseStateDown));
+            secondMouseHandler.Received().HandleLeftMouseUp(Arg.Is(mouseStateReleased), Arg.Is(mouseStateDown));
+        }
+
+        [TestMethod]
+        public void MouseInput_Can_Unsubscribe_While_Within_Handler_Of_Another_Subscription()
+        {
+            // Arrange
+            var secondMouseHandler = Substitute.For<IMouseHandler>();
+            _mouseInput.Subscribe(secondMouseHandler);
+
+            var mouseStateDown = new MouseState(
+                0,
+                0,
+                0,
+                ButtonState.Pressed,
+                ButtonState.Released,
+                ButtonState.Released,
+                ButtonState.Released,
+                ButtonState.Released
+            );
+
+            _mouseHandler
+                .When(k => k.HandleLeftMouseDown(Arg.Is(mouseStateDown)))
+                .Do(ci => _mouseInput.Unsubscribe(secondMouseHandler));
+
+            // Act
+            _mouseInput.Poll(mouseStateDown);
+
+            // Assert
+            _mouseHandler.Received().HandleLeftMouseDown(Arg.Is(mouseStateDown));
+            secondMouseHandler.Received().HandleLeftMouseDown(Arg.Is(mouseStateDown));
+
+            // Arrange - second handler should now be subscribed
+            _mouseHandler.ClearSubstitute();
+            secondMouseHandler.ClearReceivedCalls();
+
+            var mouseStateReleased = new MouseState(
+                0,
+                0,
+                0,
+                ButtonState.Released,
+                ButtonState.Released,
+                ButtonState.Released,
+                ButtonState.Released,
+                ButtonState.Released
+            );
+
+            // Act
+            _mouseInput.Poll(mouseStateReleased);
+
+            // Assert
+            _mouseHandler.Received().HandleLeftMouseUp(Arg.Is(mouseStateReleased), Arg.Is(mouseStateDown));
+            secondMouseHandler.DidNotReceive().HandleLeftMouseUp(Arg.Any<MouseState>(), Arg.Any<MouseState>());
+        }
+
+        [TestMethod]
+        public void MouseInput_Should_Ignore_Second_Subscription_Of_Same_Handler()
+        {
+            // Arrange
+            _mouseInput.Subscribe(_mouseHandler);
+
+            var mouseState = new MouseState(
+                0,
+                0,
+                0,
+                ButtonState.Pressed,
+                ButtonState.Released,
+                ButtonState.Released,
+                ButtonState.Released,
+                ButtonState.Released
+            );
+
+            // Act
+            _mouseInput.Poll(mouseState);
+
+            // Assert
+            Assert.AreEqual(1, _mouseHandler.ReceivedCalls().Count());
+
+            _mouseHandler.Received().HandleLeftMouseDown(Arg.Is(mouseState));
         }
 
         [TestMethod]
@@ -341,9 +471,9 @@ namespace InputHandlers.Tests
             _mouseInput.Poll(mouseStateReleased);
 
             // Assert
-            _mouseHandler.Received().HandleLeftMouseUp(Arg.Is(mouseStatePressed));
-            _mouseHandler.Received().HandleLeftMouseClick(Arg.Is(mouseStatePressed));
-            _mouseHandler.DidNotReceive().HandleLeftMouseDoubleClick(Arg.Any<MouseState>());
+            _mouseHandler.Received().HandleLeftMouseUp(Arg.Is(mouseStateReleased), Arg.Is(mouseStatePressed));
+            _mouseHandler.Received().HandleLeftMouseClick(Arg.Is(mouseStateReleased), Arg.Is(mouseStatePressed));
+            _mouseHandler.DidNotReceive().HandleLeftMouseDoubleClick(Arg.Any<MouseState>(), Arg.Any<MouseState>());
         }
 
         [TestMethod]
@@ -409,12 +539,12 @@ namespace InputHandlers.Tests
             _mouseInput.Poll(mouseStateReleased);
 
             // Assert
-            _mouseHandler.Received().HandleLeftMouseUp(Arg.Is(mouseStatePressedOrigin));
-            _mouseHandler.Received().HandleLeftMouseClick(Arg.Is(mouseStatePressedOrigin));
+            _mouseHandler.Received().HandleLeftMouseUp(Arg.Is(mouseStateReleased), Arg.Is(mouseStatePressedOrigin));
+            _mouseHandler.Received().HandleLeftMouseClick(Arg.Is(mouseStateReleased), Arg.Is(mouseStatePressedOrigin));
             _mouseHandler.DidNotReceive().HandleLeftMouseDragDone(Arg.Any<MouseState>(), Arg.Any<MouseState>());
             _mouseHandler.DidNotReceive().HandleLeftMouseDragging(Arg.Any<MouseState>(), Arg.Any<MouseState>());
             _mouseHandler.DidNotReceive().HandleMouseMoving(Arg.Any<MouseState>(), Arg.Any<MouseState>());
-            _mouseHandler.DidNotReceive().HandleLeftMouseDoubleClick(Arg.Any<MouseState>());
+            _mouseHandler.DidNotReceive().HandleLeftMouseDoubleClick(Arg.Any<MouseState>(), Arg.Any<MouseState>());
         }
 
         [TestMethod]
@@ -466,10 +596,10 @@ namespace InputHandlers.Tests
             _mouseInput.Poll(mouseStateSecondClick);
 
             // Assert
-            _mouseHandler.Received().HandleLeftMouseDoubleClick(Arg.Is(mouseStatePressed));
-            _mouseHandler.DidNotReceive().HandleLeftMouseClick(Arg.Any<MouseState>());
+            _mouseHandler.Received().HandleLeftMouseDoubleClick(Arg.Is(mouseStateSecondClick), Arg.Is(mouseStatePressed));
+            _mouseHandler.DidNotReceive().HandleLeftMouseClick(Arg.Any<MouseState>(), Arg.Any<MouseState>());
             _mouseHandler.DidNotReceive().HandleLeftMouseDown(Arg.Any<MouseState>());
-            _mouseHandler.DidNotReceive().HandleLeftMouseUp(Arg.Any<MouseState>());
+            _mouseHandler.DidNotReceive().HandleLeftMouseUp(Arg.Any<MouseState>(), Arg.Any<MouseState>());
 
             // Act - Releasing
             _mouseHandler.ClearReceivedCalls();
@@ -489,10 +619,10 @@ namespace InputHandlers.Tests
             _mouseInput.Poll(mouseStateReleased);
 
             // Assert - Releasing
-            _mouseHandler.DidNotReceive().HandleLeftMouseDoubleClick(Arg.Any<MouseState>());
-            _mouseHandler.DidNotReceive().HandleLeftMouseClick(Arg.Any<MouseState>());
+            _mouseHandler.DidNotReceive().HandleLeftMouseDoubleClick(Arg.Any<MouseState>(), Arg.Any<MouseState>());
+            _mouseHandler.DidNotReceive().HandleLeftMouseClick(Arg.Any<MouseState>(), Arg.Any<MouseState>());
             _mouseHandler.DidNotReceive().HandleLeftMouseDown(Arg.Any<MouseState>());
-            _mouseHandler.DidNotReceive().HandleLeftMouseUp(Arg.Any<MouseState>());
+            _mouseHandler.DidNotReceive().HandleLeftMouseUp(Arg.Any<MouseState>(), Arg.Any<MouseState>());
         }
 
         [TestMethod]
@@ -546,9 +676,9 @@ namespace InputHandlers.Tests
             // Assert
             _mouseHandler.Received().HandleLeftMouseDown(Arg.Is(mouseStateSecondClick));
 
-            _mouseHandler.DidNotReceive().HandleLeftMouseDoubleClick(Arg.Any<MouseState>());
-            _mouseHandler.DidNotReceive().HandleLeftMouseClick(Arg.Any<MouseState>());
-            _mouseHandler.DidNotReceive().HandleLeftMouseUp(Arg.Any<MouseState>());
+            _mouseHandler.DidNotReceive().HandleLeftMouseDoubleClick(Arg.Any<MouseState>(), Arg.Any<MouseState>());
+            _mouseHandler.DidNotReceive().HandleLeftMouseClick(Arg.Any<MouseState>(), Arg.Any<MouseState>());
+            _mouseHandler.DidNotReceive().HandleLeftMouseUp(Arg.Any<MouseState>(), Arg.Any<MouseState>());
 
             // Act - Releasing
             _mouseHandler.ClearReceivedCalls();
@@ -568,12 +698,12 @@ namespace InputHandlers.Tests
             _mouseInput.Poll(mouseStateReleased);
 
             // Assert - Releasing
-            _mouseHandler.Received().HandleLeftMouseUp(Arg.Is(mouseStateSecondClick));
-            _mouseHandler.Received().HandleLeftMouseClick(Arg.Is(mouseStateSecondClick));
+            _mouseHandler.Received().HandleLeftMouseUp(Arg.Is(mouseStateReleased), Arg.Is(mouseStateSecondClick));
+            _mouseHandler.Received().HandleLeftMouseClick(Arg.Is(mouseStateReleased), Arg.Is(mouseStateSecondClick));
             _mouseHandler.DidNotReceive().HandleLeftMouseDragDone(Arg.Any<MouseState>(), Arg.Any<MouseState>());
             _mouseHandler.DidNotReceive().HandleLeftMouseDragging(Arg.Any<MouseState>(), Arg.Any<MouseState>());
             _mouseHandler.DidNotReceive().HandleMouseMoving(Arg.Any<MouseState>(), Arg.Any<MouseState>());
-            _mouseHandler.DidNotReceive().HandleLeftMouseDoubleClick(Arg.Any<MouseState>());
+            _mouseHandler.DidNotReceive().HandleLeftMouseDoubleClick(Arg.Any<MouseState>(), Arg.Any<MouseState>());
         }
 
         [DataTestMethod]
@@ -617,7 +747,7 @@ namespace InputHandlers.Tests
             // Assert
             _mouseHandler.Received().HandleLeftMouseDragging(Arg.Is(mouseStateDragging), Arg.Is(mouseStatePressedOrigin));
             _mouseHandler.DidNotReceive().HandleMouseMoving(Arg.Any<MouseState>(), Arg.Any<MouseState>());
-            _mouseHandler.DidNotReceive().HandleLeftMouseClick(Arg.Any<MouseState>());
+            _mouseHandler.DidNotReceive().HandleLeftMouseClick(Arg.Any<MouseState>(), Arg.Any<MouseState>());
         }
 
         [TestMethod]
@@ -670,9 +800,9 @@ namespace InputHandlers.Tests
             _mouseInput.Poll(mouseStateReleased);
 
             // Assert
-            _mouseHandler.Received().HandleLeftMouseUp(Arg.Is(mouseStateReleased));
+            _mouseHandler.Received().HandleLeftMouseUp(Arg.Is(mouseStateReleased), Arg.Is(mouseStatePressedOrigin));
             _mouseHandler.Received().HandleLeftMouseDragDone(Arg.Is(mouseStateReleased), Arg.Is(mouseStatePressedOrigin));
-            _mouseHandler.DidNotReceive().HandleLeftMouseClick(Arg.Any<MouseState>());
+            _mouseHandler.DidNotReceive().HandleLeftMouseClick(Arg.Any<MouseState>(), Arg.Any<MouseState>());
         }
 
         [TestMethod]
@@ -756,9 +886,9 @@ namespace InputHandlers.Tests
             _mouseInput.Poll(mouseStateReleased);
 
             // Assert
-            _mouseHandler.Received().HandleRightMouseUp(Arg.Is(mouseStatePressed));
-            _mouseHandler.Received().HandleRightMouseClick(Arg.Is(mouseStatePressed));
-            _mouseHandler.DidNotReceive().HandleRightMouseDoubleClick(Arg.Any<MouseState>());
+            _mouseHandler.Received().HandleRightMouseUp(Arg.Is(mouseStateReleased), Arg.Is(mouseStatePressed));
+            _mouseHandler.Received().HandleRightMouseClick(Arg.Is(mouseStateReleased), Arg.Is(mouseStatePressed));
+            _mouseHandler.DidNotReceive().HandleRightMouseDoubleClick(Arg.Any<MouseState>(), Arg.Any<MouseState>());
         }
 
         [TestMethod]
@@ -822,12 +952,12 @@ namespace InputHandlers.Tests
             _mouseInput.Poll(mouseStateReleased);
 
             // Assert
-            _mouseHandler.Received().HandleRightMouseUp(Arg.Is(mouseStatePressedOrigin));
-            _mouseHandler.Received().HandleRightMouseClick(Arg.Is(mouseStatePressedOrigin));
+            _mouseHandler.Received().HandleRightMouseUp(Arg.Is(mouseStateReleased), Arg.Is(mouseStatePressedOrigin));
+            _mouseHandler.Received().HandleRightMouseClick(Arg.Is(mouseStateReleased), Arg.Is(mouseStatePressedOrigin));
             _mouseHandler.DidNotReceive().HandleRightMouseDragDone(Arg.Any<MouseState>(), Arg.Any<MouseState>());
             _mouseHandler.DidNotReceive().HandleRightMouseDragging(Arg.Any<MouseState>(), Arg.Any<MouseState>());
             _mouseHandler.DidNotReceive().HandleMouseMoving(Arg.Any<MouseState>(), Arg.Any<MouseState>());
-            _mouseHandler.DidNotReceive().HandleRightMouseDoubleClick(Arg.Any<MouseState>());
+            _mouseHandler.DidNotReceive().HandleRightMouseDoubleClick(Arg.Any<MouseState>(), Arg.Any<MouseState>());
         }
 
         [TestMethod]
@@ -877,10 +1007,10 @@ namespace InputHandlers.Tests
             _mouseInput.Poll(mouseStateSecondClick);
 
             // Assert
-            _mouseHandler.Received().HandleRightMouseDoubleClick(Arg.Is(mouseStatePressed));
-            _mouseHandler.DidNotReceive().HandleRightMouseClick(Arg.Any<MouseState>());
+            _mouseHandler.Received().HandleRightMouseDoubleClick(Arg.Is(mouseStateSecondClick), Arg.Is(mouseStatePressed));
+            _mouseHandler.DidNotReceive().HandleRightMouseClick(Arg.Any<MouseState>(), Arg.Any<MouseState>());
             _mouseHandler.DidNotReceive().HandleRightMouseDown(Arg.Any<MouseState>());
-            _mouseHandler.DidNotReceive().HandleRightMouseUp(Arg.Any<MouseState>());
+            _mouseHandler.DidNotReceive().HandleRightMouseUp(Arg.Any<MouseState>(), Arg.Any<MouseState>());
 
             // Act - Releasing
             _mouseHandler.ClearReceivedCalls();
@@ -900,10 +1030,10 @@ namespace InputHandlers.Tests
             _mouseInput.Poll(mouseStateReleased);
 
             // Assert - Releasing
-            _mouseHandler.DidNotReceive().HandleRightMouseDoubleClick(Arg.Any<MouseState>());
-            _mouseHandler.DidNotReceive().HandleRightMouseClick(Arg.Any<MouseState>());
+            _mouseHandler.DidNotReceive().HandleRightMouseDoubleClick(Arg.Any<MouseState>(), Arg.Any<MouseState>());
+            _mouseHandler.DidNotReceive().HandleRightMouseClick(Arg.Any<MouseState>(), Arg.Any<MouseState>());
             _mouseHandler.DidNotReceive().HandleRightMouseDown(Arg.Any<MouseState>());
-            _mouseHandler.DidNotReceive().HandleRightMouseUp(Arg.Any<MouseState>());
+            _mouseHandler.DidNotReceive().HandleRightMouseUp(Arg.Any<MouseState>(), Arg.Any<MouseState>());
         }
 
         [TestMethod]
@@ -955,9 +1085,9 @@ namespace InputHandlers.Tests
             // Assert
             _mouseHandler.Received().HandleRightMouseDown(Arg.Is(mouseStateSecondClick));
 
-            _mouseHandler.DidNotReceive().HandleRightMouseDoubleClick(Arg.Any<MouseState>());
-            _mouseHandler.DidNotReceive().HandleRightMouseClick(Arg.Any<MouseState>());
-            _mouseHandler.DidNotReceive().HandleRightMouseUp(Arg.Any<MouseState>());
+            _mouseHandler.DidNotReceive().HandleRightMouseDoubleClick(Arg.Any<MouseState>(), Arg.Any<MouseState>());
+            _mouseHandler.DidNotReceive().HandleRightMouseClick(Arg.Any<MouseState>(), Arg.Any<MouseState>());
+            _mouseHandler.DidNotReceive().HandleRightMouseUp(Arg.Any<MouseState>(), Arg.Any<MouseState>());
 
             // Act - Releasing
             _mouseHandler.ClearReceivedCalls();
@@ -977,12 +1107,12 @@ namespace InputHandlers.Tests
             _mouseInput.Poll(mouseStateReleased);
 
             // Assert - Releasing
-            _mouseHandler.Received().HandleRightMouseUp(Arg.Is(mouseStateSecondClick));
-            _mouseHandler.Received().HandleRightMouseClick(Arg.Is(mouseStateSecondClick));
+            _mouseHandler.Received().HandleRightMouseUp(Arg.Is(mouseStateReleased), Arg.Is(mouseStateSecondClick));
+            _mouseHandler.Received().HandleRightMouseClick(Arg.Is(mouseStateReleased), Arg.Is(mouseStateSecondClick));
             _mouseHandler.DidNotReceive().HandleRightMouseDragDone(Arg.Any<MouseState>(), Arg.Any<MouseState>());
             _mouseHandler.DidNotReceive().HandleRightMouseDragging(Arg.Any<MouseState>(), Arg.Any<MouseState>());
             _mouseHandler.DidNotReceive().HandleMouseMoving(Arg.Any<MouseState>(), Arg.Any<MouseState>());
-            _mouseHandler.DidNotReceive().HandleRightMouseDoubleClick(Arg.Any<MouseState>());
+            _mouseHandler.DidNotReceive().HandleRightMouseDoubleClick(Arg.Any<MouseState>(), Arg.Any<MouseState>());
         }
 
         [DataTestMethod]
@@ -1025,7 +1155,7 @@ namespace InputHandlers.Tests
             // Assert
             _mouseHandler.Received().HandleRightMouseDragging(Arg.Is(mouseStateDragging), Arg.Is(mouseStatePressedOrigin));
             _mouseHandler.DidNotReceive().HandleMouseMoving(Arg.Any<MouseState>(), Arg.Any<MouseState>());
-            _mouseHandler.DidNotReceive().HandleRightMouseClick(Arg.Any<MouseState>());
+            _mouseHandler.DidNotReceive().HandleRightMouseClick(Arg.Any<MouseState>(), Arg.Any<MouseState>());
         }
 
         [TestMethod]
@@ -1078,9 +1208,9 @@ namespace InputHandlers.Tests
             _mouseInput.Poll(mouseStateReleased);
 
             // Assert
-            _mouseHandler.Received().HandleRightMouseUp(Arg.Is(mouseStateReleased));
+            _mouseHandler.Received().HandleRightMouseUp(Arg.Is(mouseStateReleased), Arg.Is(mouseStatePressedOrigin));
             _mouseHandler.Received().HandleRightMouseDragDone(Arg.Is(mouseStateReleased), Arg.Is(mouseStatePressedOrigin));
-            _mouseHandler.DidNotReceive().HandleRightMouseClick(Arg.Any<MouseState>());
+            _mouseHandler.DidNotReceive().HandleRightMouseClick(Arg.Any<MouseState>(), Arg.Any<MouseState>());
         }
 
         [TestMethod]
@@ -1164,9 +1294,9 @@ namespace InputHandlers.Tests
             _mouseInput.Poll(mouseStateReleased);
 
             // Assert
-            _mouseHandler.Received().HandleMiddleMouseUp(Arg.Is(mouseStatePressed));
-            _mouseHandler.Received().HandleMiddleMouseClick(Arg.Is(mouseStatePressed));
-            _mouseHandler.DidNotReceive().HandleMiddleMouseDoubleClick(Arg.Any<MouseState>());
+            _mouseHandler.Received().HandleMiddleMouseUp(Arg.Is(mouseStateReleased), Arg.Is(mouseStatePressed));
+            _mouseHandler.Received().HandleMiddleMouseClick(Arg.Is(mouseStateReleased), Arg.Is(mouseStatePressed));
+            _mouseHandler.DidNotReceive().HandleMiddleMouseDoubleClick(Arg.Any<MouseState>(), Arg.Any<MouseState>());
         }
 
         [TestMethod]
@@ -1232,12 +1362,12 @@ namespace InputHandlers.Tests
             _mouseInput.Poll(mouseStateReleased);
 
             // Assert
-            _mouseHandler.Received().HandleMiddleMouseUp(Arg.Is(mouseStatePressedOrigin));
-            _mouseHandler.Received().HandleMiddleMouseClick(Arg.Is(mouseStatePressedOrigin));
+            _mouseHandler.Received().HandleMiddleMouseUp(Arg.Is(mouseStateReleased), Arg.Is(mouseStatePressedOrigin));
+            _mouseHandler.Received().HandleMiddleMouseClick(Arg.Is(mouseStateReleased), Arg.Is(mouseStatePressedOrigin));
             _mouseHandler.DidNotReceive().HandleMiddleMouseDragDone(Arg.Any<MouseState>(), Arg.Any<MouseState>());
             _mouseHandler.DidNotReceive().HandleMiddleMouseDragging(Arg.Any<MouseState>(), Arg.Any<MouseState>());
             _mouseHandler.DidNotReceive().HandleMouseMoving(Arg.Any<MouseState>(), Arg.Any<MouseState>());
-            _mouseHandler.DidNotReceive().HandleMiddleMouseDoubleClick(Arg.Any<MouseState>());
+            _mouseHandler.DidNotReceive().HandleMiddleMouseDoubleClick(Arg.Any<MouseState>(), Arg.Any<MouseState>());
         }
 
         [TestMethod]
@@ -1289,10 +1419,10 @@ namespace InputHandlers.Tests
             _mouseInput.Poll(mouseStateSecondClick);
 
             // Assert
-            _mouseHandler.Received().HandleMiddleMouseDoubleClick(Arg.Is(mouseStatePressed));
-            _mouseHandler.DidNotReceive().HandleMiddleMouseClick(Arg.Any<MouseState>());
+            _mouseHandler.Received().HandleMiddleMouseDoubleClick(Arg.Is(mouseStateSecondClick), Arg.Is(mouseStatePressed));
+            _mouseHandler.DidNotReceive().HandleMiddleMouseClick(Arg.Any<MouseState>(), Arg.Any<MouseState>());
             _mouseHandler.DidNotReceive().HandleMiddleMouseDown(Arg.Any<MouseState>());
-            _mouseHandler.DidNotReceive().HandleMiddleMouseUp(Arg.Any<MouseState>());
+            _mouseHandler.DidNotReceive().HandleMiddleMouseUp(Arg.Any<MouseState>(), Arg.Any<MouseState>());
 
             // Act - Releasing
             _mouseHandler.ClearReceivedCalls();
@@ -1312,10 +1442,10 @@ namespace InputHandlers.Tests
             _mouseInput.Poll(mouseStateReleased);
 
             // Assert - Releasing
-            _mouseHandler.DidNotReceive().HandleMiddleMouseDoubleClick(Arg.Any<MouseState>());
-            _mouseHandler.DidNotReceive().HandleMiddleMouseClick(Arg.Any<MouseState>());
+            _mouseHandler.DidNotReceive().HandleMiddleMouseDoubleClick(Arg.Any<MouseState>(), Arg.Any<MouseState>());
+            _mouseHandler.DidNotReceive().HandleMiddleMouseClick(Arg.Any<MouseState>(), Arg.Any<MouseState>());
             _mouseHandler.DidNotReceive().HandleMiddleMouseDown(Arg.Any<MouseState>());
-            _mouseHandler.DidNotReceive().HandleMiddleMouseUp(Arg.Any<MouseState>());
+            _mouseHandler.DidNotReceive().HandleMiddleMouseUp(Arg.Any<MouseState>(), Arg.Any<MouseState>());
         }
 
         [TestMethod]
@@ -1369,9 +1499,9 @@ namespace InputHandlers.Tests
             // Assert
             _mouseHandler.Received().HandleMiddleMouseDown(Arg.Is(mouseStateSecondClick));
 
-            _mouseHandler.DidNotReceive().HandleMiddleMouseDoubleClick(Arg.Any<MouseState>());
-            _mouseHandler.DidNotReceive().HandleMiddleMouseClick(Arg.Any<MouseState>());
-            _mouseHandler.DidNotReceive().HandleMiddleMouseUp(Arg.Any<MouseState>());
+            _mouseHandler.DidNotReceive().HandleMiddleMouseDoubleClick(Arg.Any<MouseState>(), Arg.Any<MouseState>());
+            _mouseHandler.DidNotReceive().HandleMiddleMouseClick(Arg.Any<MouseState>(), Arg.Any<MouseState>());
+            _mouseHandler.DidNotReceive().HandleMiddleMouseUp(Arg.Any<MouseState>(), Arg.Any<MouseState>());
 
             // Act - Releasing
             _mouseHandler.ClearReceivedCalls();
@@ -1391,12 +1521,12 @@ namespace InputHandlers.Tests
             _mouseInput.Poll(mouseStateReleased);
 
             // Assert - Releasing
-            _mouseHandler.Received().HandleMiddleMouseUp(Arg.Is(mouseStateSecondClick));
-            _mouseHandler.Received().HandleMiddleMouseClick(Arg.Is(mouseStateSecondClick));
+            _mouseHandler.Received().HandleMiddleMouseUp(Arg.Is(mouseStateReleased), Arg.Is(mouseStateSecondClick));
+            _mouseHandler.Received().HandleMiddleMouseClick(Arg.Is(mouseStateReleased), Arg.Is(mouseStateSecondClick));
             _mouseHandler.DidNotReceive().HandleMiddleMouseDragDone(Arg.Any<MouseState>(), Arg.Any<MouseState>());
             _mouseHandler.DidNotReceive().HandleMiddleMouseDragging(Arg.Any<MouseState>(), Arg.Any<MouseState>());
             _mouseHandler.DidNotReceive().HandleMouseMoving(Arg.Any<MouseState>(), Arg.Any<MouseState>());
-            _mouseHandler.DidNotReceive().HandleMiddleMouseDoubleClick(Arg.Any<MouseState>());
+            _mouseHandler.DidNotReceive().HandleMiddleMouseDoubleClick(Arg.Any<MouseState>(), Arg.Any<MouseState>());
         }
 
         [DataTestMethod]
@@ -1440,7 +1570,7 @@ namespace InputHandlers.Tests
             // Assert
             _mouseHandler.Received().HandleMiddleMouseDragging(Arg.Is(mouseStateDragging), Arg.Is(mouseStatePressedOrigin));
             _mouseHandler.DidNotReceive().HandleMouseMoving(Arg.Any<MouseState>(), Arg.Any<MouseState>());
-            _mouseHandler.DidNotReceive().HandleMiddleMouseClick(Arg.Any<MouseState>());
+            _mouseHandler.DidNotReceive().HandleMiddleMouseClick(Arg.Any<MouseState>(), Arg.Any<MouseState>());
         }
 
         [TestMethod]
@@ -1493,9 +1623,9 @@ namespace InputHandlers.Tests
             _mouseInput.Poll(mouseStateReleased);
 
             // Assert
-            _mouseHandler.Received().HandleMiddleMouseUp(Arg.Is(mouseStateReleased));
+            _mouseHandler.Received().HandleMiddleMouseUp(Arg.Is(mouseStateReleased), Arg.Is(mouseStatePressedOrigin));
             _mouseHandler.Received().HandleMiddleMouseDragDone(Arg.Is(mouseStateReleased), Arg.Is(mouseStatePressedOrigin));
-            _mouseHandler.DidNotReceive().HandleMiddleMouseClick(Arg.Any<MouseState>());
+            _mouseHandler.DidNotReceive().HandleMiddleMouseClick(Arg.Any<MouseState>(), Arg.Any<MouseState>());
         }
     }
 }

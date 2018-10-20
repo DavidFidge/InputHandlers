@@ -28,7 +28,8 @@ namespace InputHandlers.Mouse
         /// Handle left mouse click.  A mouse up event is sent just prior to this and is followed up by this event.
         /// </summary>
         /// <param name="mouseState">State of mouse when handler was called</param>
-        void HandleLeftMouseClick(MouseState mouseState);
+        /// <param name="origin">State of mouse when button went down.  The position in here is generally the one you want to use for determining click location.</param>
+        void HandleLeftMouseClick(MouseState mouseState, MouseState origin);
 
         /// <summary>
         /// Handle left mouse double click.  Unlike a left mouse click, no mouse up event is sent for this action - this is
@@ -40,7 +41,8 @@ namespace InputHandlers.Mouse
         /// click events.
         /// </summary>
         /// <param name="mouseState">State of mouse when handler was called</param>
-        void HandleLeftMouseDoubleClick(MouseState mouseState);
+        /// <param name="origin">State of mouse when button went down.  The position in here is generally the one you want to use for determining click location.</param>
+        void HandleLeftMouseDoubleClick(MouseState mouseState, MouseState origin);
 
         /// <summary>
         /// Handle left mouse down.  If the user holds down the mouse button and moves the mouse past the threshold for
@@ -55,7 +57,8 @@ namespace InputHandlers.Mouse
         /// called at the end of a double click.
         /// </summary>
         /// <param name="mouseState">State of mouse when handler was called</param>
-        void HandleLeftMouseUp(MouseState mouseState);
+        /// <param name="origin">State of mouse when button went down.  The position in here is generally the one you want to use for determining click location.</param>
+        void HandleLeftMouseUp(MouseState mouseState, MouseState origin);
 
         /// <summary>
         /// Handle the situation where the mouse is being held down while the mouse is moving.  This event is continuously sent
@@ -82,13 +85,15 @@ namespace InputHandlers.Mouse
         /// Handle left mouse click.  A mouse up event is sent just prior to this and is followed up by this event.
         /// </summary>
         /// <param name="mouseState">State of mouse when handler was called</param>
-        void HandleRightMouseClick(MouseState mouseState);
+        /// <param name="origin">State of mouse when button went down.  The position in here is generally the one you want to use for determining click location.</param>
+        void HandleRightMouseClick(MouseState mouseState, MouseState origin);
 
         /// <summary>
         /// Handle right mouse double click.  See left mouse double click description for in depth info.
         /// </summary>
         /// <param name="mouseState">State of mouse when handler was called</param>
-        void HandleRightMouseDoubleClick(MouseState mouseState);
+        /// <param name="origin">State of mouse when button went down.  The position in here is generally the one you want to use for determining click location.</param>
+        void HandleRightMouseDoubleClick(MouseState mouseState, MouseState origin);
 
         /// <summary>
         /// Handle right mouse down.  If the user holds down the mouse button and moves the mouse past the threshold for
@@ -103,7 +108,8 @@ namespace InputHandlers.Mouse
         /// called at the end of a double click.
         /// </summary>
         /// <param name="mouseState">State of mouse when handler was called</param>
-        void HandleRightMouseUp(MouseState mouseState);
+        /// <param name="origin">State of mouse when button went down.  The position in here is generally the one you want to use for determining click location.</param>
+        void HandleRightMouseUp(MouseState mouseState, MouseState origin);
 
         /// <summary>
         /// Handle the situation where the mouse is being held down while the mouse is moving.  This event is continuously sent
@@ -130,13 +136,15 @@ namespace InputHandlers.Mouse
         /// Handle left mouse click.  A mouse up event is sent just prior to this and is followed up by this event.
         /// </summary>
         /// <param name="mouseState">State of mouse when handler was called</param>
-        void HandleMiddleMouseClick(MouseState mouseState);
+        /// <param name="origin">State of mouse when button went down.  The position in here is generally the one you want to use for determining click location.</param>
+        void HandleMiddleMouseClick(MouseState mouseState, MouseState origin);
 
         /// <summary>
         /// Handle middle mouse double click.  See left mouse double click description for in depth info.
         /// </summary>
         /// <param name="mouseState">State of mouse when handler was called</param>
-        void HandleMiddleMouseDoubleClick(MouseState mouseState);
+        /// <param name="origin">State of mouse when button went down.  The position in here is generally the one you want to use for determining click location.</param>
+        void HandleMiddleMouseDoubleClick(MouseState mouseState, MouseState origin);
 
         /// <summary>
         /// Handle middle mouse down.  If the user holds down the mouse button and moves the mouse past the threshold for
@@ -151,7 +159,8 @@ namespace InputHandlers.Mouse
         /// called at the end of a double click.
         /// </summary>
         /// <param name="mouseState">State of mouse when handler was called</param>
-        void HandleMiddleMouseUp(MouseState mouseState);
+        /// <param name="origin">State of mouse when button went down.  The position in here is generally the one you want to use for determining click location.</param>
+        void HandleMiddleMouseUp(MouseState mouseState, MouseState origin);
 
         /// <summary>
         /// Handle the situation where the mouse is being held down while the mouse is moving.  This event is continuously sent

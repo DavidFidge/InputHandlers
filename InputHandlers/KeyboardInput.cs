@@ -12,23 +12,26 @@ namespace InputHandlers.Keyboard
     public class KeyboardInput : IKeyboardInput
     {
         private readonly StateMachine<KeyboardInput> _keyboardStateMachine;
-        private readonly KeyboardKeyDownState _keyboardKeyDownState;
-        private readonly KeyboardKeyLostState _keyboardKeyLostState;
-        private readonly KeyboardKeyRepeatState _keyboardKeyRepeatState;
-        private readonly KeyboardUnpressedState _keyboardUnpressedState;
+        private readonly KeyboardKeyDownState _keyboardKeyDownState = new KeyboardKeyDownState();
+        private readonly KeyboardKeyLostState _keyboardKeyLostState = new KeyboardKeyLostState();
+        private readonly KeyboardKeyRepeatState _keyboardKeyRepeatState = new KeyboardKeyRepeatState();
+        private readonly KeyboardUnpressedState _keyboardUnpressedState = new KeyboardUnpressedState();
 
         private int _repeatDelay = 1000;
         private int _repeatFrequency = 50;
-        private readonly List<IKeyboardHandler> _keyboardHandlers;
+
+        private readonly HashSet<IKeyboardHandler> _keyboardHandlerSubscriptions = new HashSet<IKeyboardHandler>();
+        private readonly HashSet<IKeyboardHandler> _pendingAddedSubscriptions = new HashSet<IKeyboardHandler>();
+        private readonly HashSet<IKeyboardHandler> _pendingRemovedSubscriptions = new HashSet<IKeyboardHandler>();
 
         public KeyboardState OldKeyboardState { get; private set; }
         public KeyboardState CurrentKeyboardState { get; private set; }
 
-        public IList<Keys> UnmanagedKeys { get; private set; }
+        public IList<Keys> UnmanagedKeys { get; private set; } = new List<Keys>();
 
         public IStopwatchProvider StopwatchProvider { get; private set; }
 
-        private KeyDelta _keyDelta;
+        private readonly KeyDelta _keyDelta;
 
         /// <summary>
         /// This is incremented on each update.  This can be used to determine whether a sequence of events have occurred within the same update time. 
@@ -40,7 +43,7 @@ namespace InputHandlers.Keyboard
         /// </summary>
         public int RepeatDelay
         {
-            get { return _repeatDelay; }
+            get => _repeatDelay;
             set
             {
                 if (value > 0)
@@ -70,7 +73,7 @@ namespace InputHandlers.Keyboard
             set { _keyDelta.TreatModifiersAsKeys = value; }
         }
 
-        public bool IsRepeatEnabled { get; set; }
+        public bool IsRepeatEnabled { get; set; } = true;
 
         public KeyboardInput() : this(new StopwatchProvider())
         {
@@ -78,18 +81,6 @@ namespace InputHandlers.Keyboard
 
         public KeyboardInput(IStopwatchProvider stopwatchProvider)
         {
-            IsRepeatEnabled = true;
-
-            _keyboardHandlers = new List<IKeyboardHandler>();
-
-            _keyboardUnpressedState = new KeyboardUnpressedState();
-            _keyboardKeyDownState = new KeyboardKeyDownState();
-            _keyboardKeyLostState = new KeyboardKeyLostState();
-            _keyboardKeyRepeatState = new KeyboardKeyRepeatState();
-
-            UpdateNumber = 0;
-            UnmanagedKeys = new List<Keys>(0);
-
             _keyDelta = new KeyDelta(UnmanagedKeys);
             
             StopwatchProvider = stopwatchProvider;
@@ -103,18 +94,18 @@ namespace InputHandlers.Keyboard
         public void Subscribe(IKeyboardHandler keyboardHandler)
         {
             if (keyboardHandler != null)
-                _keyboardHandlers.Add(keyboardHandler);
+                _pendingAddedSubscriptions.Add(keyboardHandler);
         }
 
         public void Unsubscribe(IKeyboardHandler keyboardHandler)
         {
             if (keyboardHandler != null)
-                _keyboardHandlers.Remove(keyboardHandler);
+                _pendingRemovedSubscriptions.Add(keyboardHandler);
         }
 
         private void CallHandleKeyboardKeyDown(Keys[] keysDown, Keys focus, KeyboardModifier keyboardModifier)
         {
-            foreach (var keyboardHandler in _keyboardHandlers)
+            foreach (var keyboardHandler in _keyboardHandlerSubscriptions)
             {
                 keyboardHandler.HandleKeyboardKeyDown(keysDown, focus, keyboardModifier);
             }
@@ -122,7 +113,7 @@ namespace InputHandlers.Keyboard
 
         private void CallHandleKeyboardKeyLost(Keys[] keysDown, KeyboardModifier keyboardModifier)
         {
-            foreach (var keyboardHandler in _keyboardHandlers)
+            foreach (var keyboardHandler in _keyboardHandlerSubscriptions)
             {
                 keyboardHandler.HandleKeyboardKeyLost(keysDown, keyboardModifier);
             }
@@ -130,7 +121,7 @@ namespace InputHandlers.Keyboard
 
         private void CallHandleKeyboardKeyRepeat(Keys repeatingKey, KeyboardModifier keyboardModifier)
         {
-            foreach (var keyboardHandler in _keyboardHandlers)
+            foreach (var keyboardHandler in _keyboardHandlerSubscriptions)
             {
                 keyboardHandler.HandleKeyboardKeyRepeat(repeatingKey, keyboardModifier);
             }
@@ -138,7 +129,7 @@ namespace InputHandlers.Keyboard
 
         private void CallHandleKeyboardKeysReleased()
         {
-            foreach (var keyboardHandler in _keyboardHandlers)
+            foreach (var keyboardHandler in _keyboardHandlerSubscriptions)
             {
                 keyboardHandler.HandleKeyboardKeysReleased();
             }
@@ -157,8 +148,24 @@ namespace InputHandlers.Keyboard
 
             OldKeyboardState = CurrentKeyboardState;
             CurrentKeyboardState = keyboardState;
+
             _keyDelta.Update(CurrentKeyboardState);
+
+            UpdateSubscriptions();
+
             _keyboardStateMachine.Update();
+        }
+
+        private void UpdateSubscriptions()
+        {
+            foreach (var pendingAddedSubscription in _pendingAddedSubscriptions)
+                _keyboardHandlerSubscriptions.Add(pendingAddedSubscription);
+
+            foreach (var pendingRemovedSubscriptions in _pendingRemovedSubscriptions)
+                _keyboardHandlerSubscriptions.Remove(pendingRemovedSubscriptions);
+
+            _pendingAddedSubscriptions.Clear();
+            _pendingRemovedSubscriptions.Clear();
         }
 
         /// <summary>
