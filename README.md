@@ -6,6 +6,9 @@ This library processes mouse and keyboard updates from XNA and broadcasts change
 
 A sample project is provided which shows how the events work and how to use the library.
 
+## MonoGame Version
+The projects and NuGet package is currently compiled against WindowsDx.  You should be able to take this repository and swap it out with any other version without issue.
+
 ## Mouse Events
 HandleMouseScrollWheelMove
 
@@ -55,3 +58,15 @@ HandleKeyboardKeyLost
 HandleKeyboardKeyRepeat
 
 HandleKeyboardKeysReleased
+
+## Version History
+### 1.1.0
+Changed mouse handler parameters for mouse left, middle and right click events.  The first parameter is now the current mouse state.  The second parameter, 'origin', is the mouse state when the left, middle or right mouse button was first pressed.   This is the parameter you will typically want to use when processing the position of a click or double click.
+
+Fixed exception when subscribing to handlers within a handle event of a handler.
+
+### 1.0.1
+Added interfaces for mouse handler and keyboard handler to make testing and dependency injection easier.
+
+### 1.0.0
+Initial release
