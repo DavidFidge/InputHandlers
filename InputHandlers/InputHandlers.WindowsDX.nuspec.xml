@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package >
   <metadata>
-    <id>InputHandlers.MonoGame</id>
+    <id>InputHandlers.MonoGame.WindowsDX</id>
     <version>1.2.0</version>
     <title>$title$</title>
     <authors>$author$</authors>
@@ -12,6 +12,9 @@
     <description>$description$</description>
     <releaseNotes>Update to MonoGame 3.7</releaseNotes>
     <copyright>Copyright 2018</copyright>
+	<dependencies>
+		<dependency id="MonoGame.Framework.WindowsDX" version="3.7.1.189" />
+	</dependencies>
     <tags>MonoGame Input</tags>
   </metadata>
 </package>
