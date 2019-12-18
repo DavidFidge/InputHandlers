@@ -105,6 +105,9 @@ HandleKeyboardKeyRepeat
 HandleKeyboardKeysReleased
 
 ## Version History
+### 1.2.0
+Updated to MonoGame 3.7
+
 ### 1.1.0
 Changed mouse handler parameters for mouse left, middle and right click events.  The first parameter is now the current mouse state.  The second parameter, 'origin', is the mouse state when the left, middle or right mouse button was first pressed.   This is the parameter you will typically want to use when processing the position of a click or double click.
 
