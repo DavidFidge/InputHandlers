@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package >
   <metadata>
-    <id>InputHandlers.MonoGame</id>
+    <id>$id$</id>
     <version>$version$</version>
     <title>$title$</title>
     <authors>$author$</authors>
@@ -10,11 +10,8 @@
     <projectUrl>https://github.com/DireAussie/InputHandlers</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>$description$</description>
-    <releaseNotes>Initial Release</releaseNotes>
-    <copyright>Copyright 2018</copyright>
-	<dependencies>
-		<dependency id="MonoGame.Framework.WindowsDX" version="3.6.0.1625" />
-	</dependencies>
+    <releaseNotes>Update to MonoGame 3.8</releaseNotes>
+    <copyright>Copyright 2021</copyright>
     <tags>MonoGame Input</tags>
   </metadata>
 </package>

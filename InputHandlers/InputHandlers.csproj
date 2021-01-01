@@ -1,7 +1,16 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
+    <Version>1.3.0</Version>
+    <PackageId>InputHandlers.MonoGame</PackageId>
+    <Authors>David Fidge</Authors>
+    <Description>Input Handling library for MonoGame</Description>
+    <Copyright>Copyright 2021</Copyright>
+    <PackageProjectUrl>https://github.com/DireAussie/InputHandlers</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/DireAussie/InputHandlers</RepositoryUrl>
+    <PackageReleaseNotes>Updated to MonoGame 3.8</PackageReleaseNotes>
+    <PackageTags>MonoGame Input</PackageTags>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="MonoGame.Framework.DesktopGL" Version="3.8.0.1641" />
