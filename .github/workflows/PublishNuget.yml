@@ -16,7 +16,7 @@ jobs:
     - name: Install dependencies
       run: dotnet restore
     - name: Build
-      run: dotnet build --configuration Release --no-restore
+      run: dotnet build --configuration Release --no-restore ./InputHandlers/InputHandlers.csproj
     - name: Publish to NuGet
       uses: brandedoutcast/publish-nuget@v2
       with:
