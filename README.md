@@ -1,5 +1,5 @@
 # InputHandlers
-A library for handling keyboard and mouse input in MonoGame.
+A library for handling keyboard and mouse input in MonoGame.  Compiled against DesktopGL.  A WindowsDX branch is also maintained.
 
 ## Overview
 This library processes mouse and keyboard updates from XNA and broadcasts changes in state to subscribers.  You subscribe to changes by implementing IMouseHandler and IKeyboardHandler and passing them to MouseInput and KeyboardInput.  Upon each Poll call, your subscription(s) will receive calls if any change of state occurred.
@@ -105,6 +105,9 @@ HandleKeyboardKeyRepeat
 HandleKeyboardKeysReleased
 
 ## Version History
+### 1.3.0
+Updated to MonoGame 3.8 and .NET Core 3.1
+
 ### 1.2.0
 Updated to MonoGame 3.7
 
