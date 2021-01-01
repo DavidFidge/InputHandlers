@@ -13,10 +13,10 @@ jobs:
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: '3.1.x'
-    - name: Install dependencies
-      run: dotnet restore
+    - name: Clean
+      run: dotnet clean ./InputHandlers.sln --configuration Release && dotnet nuget locals all --clear
     - name: Build
-      run: dotnet build --configuration Release --no-restore ./InputHandlers/InputHandlers.csproj
+      run: dotnet build --configuration Release ./InputHandlers/InputHandlers.csproj
     - name: Publish to NuGet
       uses: brandedoutcast/publish-nuget@v2
       with:
