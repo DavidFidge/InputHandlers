@@ -2,7 +2,7 @@ name: InputHandlers Publish NuGet
 
 on:
   push:
-    branches: [ master ]
+    branches: [ WindowsDX ]
 
 jobs:
   publish-nuget:
