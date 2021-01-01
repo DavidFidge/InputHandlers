@@ -1,11 +1,8 @@
 name: InputHandlers Publish NuGet
 
 on:
-  workflow_run:
-    workflows: ["InputHandlers Publish NuGet"]
+  push:
     branches: [ master ]
-    types:
-      - completed
 
 jobs:
   publish-nuget:
