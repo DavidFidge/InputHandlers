@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 
 namespace InputHandlers.Sample
 {
@@ -13,4 +13,3 @@ namespace InputHandlers.Sample
         }
     }
 }
-
