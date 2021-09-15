@@ -105,6 +105,9 @@ HandleKeyboardKeyRepeat
 HandleKeyboardKeysReleased
 
 ## Version History
+### 1.4.0
+Updated to .NET 5.0
+
 ### 1.3.0
 Updated to MonoGame 3.8 and .NET Core 3.1
 
