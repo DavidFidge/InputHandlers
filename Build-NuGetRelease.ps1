@@ -1,3 +1,4 @@
+# No longer in use.  Git workflows is being used to publish to nuget.
 param
 (
     [Parameter(Mandatory=$true)]
@@ -14,6 +15,6 @@ if ($UseWindowsDX -eq $true)
     $WindowsDX = ".WindowsDX"
 }
 
-msbuild .\InputHandlers.sln /p:Configuration=Release
-nuget pack .\InputHandlers\
+dotnet build .\InputHandlers.sln /p:Configuration=Release
+nuget pack .\InputHandlers\ -Properties Configuration=Release
 nuget push ".\InputHandlers.MonoGame$($WindowsDX).$($Version).nupkg" -Source https://nuget.org -ApiKey $NuGetApiKey
