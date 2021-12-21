@@ -4,7 +4,7 @@
     <TargetFrameworks>netcoreapp3.1;net5.0</TargetFrameworks>
     <RootNamespace>InputHandlers</RootNamespace>
     <Version>1.5.0</Version>
-    <PackageId>InputHandlers.MonoGame.WindowsDX</PackageId>
+    <PackageId>InputHandlers.MonoGame</PackageId>
     <Authors>David Fidge</Authors>
     <Description>Input Handling library for MonoGame</Description>
     <Copyright>Copyright 2021</Copyright>
