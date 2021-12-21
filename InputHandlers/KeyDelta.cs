@@ -1,18 +1,31 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
+
 using Microsoft.Xna.Framework.Input;
 
 namespace InputHandlers.Keyboard
 {
     internal class KeyDelta
     {
+        private class OrderedHashSet<T> : KeyedCollection<T, T>
+        {
+            protected override T GetKeyForItem(T item)
+            {
+                return item;
+            }
+        }
+
         private readonly IList<Keys> _unmanagedKeys;
+        private OrderedHashSet<Keys> _keysStack;
         private Keys[] _lastKeyList;
         private Keys[] _newKeyList;
         private bool _requiresUpdate;
 
         public Keys FocusKey { get; private set; }
+        public Keys LastFocusKey { get; private set; }
+        public Keys NewestKey => _keysStack.Any() ? _keysStack.Last() : Keys.None;
         public bool TreatModifiersAsKeys { get; set; }
 
         public KeyboardModifier LastModifiers { get; private set; }
@@ -28,9 +41,10 @@ namespace InputHandlers.Keyboard
 
         public KeyDelta(IList<Keys> unmanagedKeys)
         {
-            _lastKeyList = new Keys[0];
-            _newKeyList = new Keys[0];
+            _lastKeyList = Array.Empty<Keys>();
+            _newKeyList = Array.Empty<Keys>();
             NewKeyDelta = new List<Keys>();
+            _keysStack = new OrderedHashSet<Keys>();
             FocusKey = Keys.None;
             TreatModifiersAsKeys = false;
             _unmanagedKeys = unmanagedKeys;
@@ -59,15 +73,35 @@ namespace InputHandlers.Keyboard
 
                 NewKeyDelta = _newKeyList.Except(_lastKeyList).ToList();
 
+                foreach (var key in NewKeyDelta)
+                    _keysStack.Add(key);
+
+                var removedKeys = _lastKeyList.Except(_newKeyList).ToList();
+
+                foreach (var removedKey in removedKeys)
+                {
+                    _keysStack.Remove(removedKey);
+                }
+
                 if (NewKeyDelta.Any())
-                    FocusKey = NewKeyDelta.First();
-                else if (_lastKeyList.Except(_newKeyList).Any())
-                    FocusKey = Keys.None;
+                {
+                    FocusKey = NewestKey;
+                    LastFocusKey = FocusKey;
+                }
+                else
+                {
+                    FocusKey = NewestKey;
+                }
             }
         }
 
         public void Start(KeyboardState currentKeyboardState)
         {
+            _lastKeyList = Array.Empty<Keys>();
+            _newKeyList = Array.Empty<Keys>();
+            _keysStack.Clear();
+            NewKeyDelta.Clear();
+
             _requiresUpdate = true;
             _lastKeyList = currentKeyboardState.GetPressedKeys();
 
@@ -79,7 +113,6 @@ namespace InputHandlers.Keyboard
                 StripModifiers(ref _lastKeyList);
             }
 
-            NewKeyDelta.Clear();
             FocusKey = Keys.None;
         }
 
@@ -111,7 +144,15 @@ namespace InputHandlers.Keyboard
         {
             get
             {
-                return !_newKeyList.Any();
+                return !HasKeysPressed;
+            }
+        }
+
+        public bool HasKeysPressed
+        {
+            get
+            {
+                return _newKeyList.Any();
             }
         }
 

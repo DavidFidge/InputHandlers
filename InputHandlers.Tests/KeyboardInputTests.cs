@@ -198,7 +198,7 @@ namespace InputHandlers.Tests
         public void KeyboardInput_Should_Call_No_Handlers_When_Polling_With_Blank_KeyboardState()
         {
             // Arrange
-            var keyboardState = new KeyboardState(new Keys [0]);
+            var keyboardState = new KeyboardState(Array.Empty<Keys>());
 
             // Act
             _keyboardInput.Poll(keyboardState);
@@ -583,6 +583,136 @@ namespace InputHandlers.Tests
         }
 
         [DataTestMethod]
+        [DataRow(Keys.X, Keys.A, false)]
+        [DataRow(Keys.F1, Keys.BrowserBack, false)]
+        [DataRow(Keys.D0, Keys.NumPad0, true)]
+        [DataRow(Keys.RightAlt, Keys.LeftShift, true)]
+        [DataRow(Keys.X, Keys.RightShift, true)]
+        [DataRow(Keys.LeftControl, Keys.X, true)]
+        public void KeyboardInput_Should_Not_Call_HandleKeyboardKeyRepeat_When_Newest_Key_Is_Lost(Keys oldKey, Keys newKey, bool treatModifiersAsKeys)
+        {
+            // Arrange
+            _keyboardInput.TreatModifiersAsKeys = treatModifiersAsKeys;
+
+            var keyboardState = new KeyboardState(oldKey);
+            _keyboardInput.Poll(keyboardState);
+
+            var keyboardStateExtraKey = new KeyboardState(oldKey, newKey);
+
+            _keyboardInput.Poll(keyboardStateExtraKey);
+
+            var keyboardStateKeyLost = new KeyboardState(oldKey);
+
+            _keyboardInput.Poll(keyboardStateKeyLost);
+
+            _testStopwatchProvider.AdvanceByMilliseconds(_keyboardInput.RepeatDelay);
+
+            _keyboardHandler.ClearReceivedCalls();
+
+            // Act
+            _keyboardInput.Poll(keyboardStateKeyLost);
+
+            // Assert
+            _keyboardHandler.DidNotReceive().HandleKeyboardKeyLost(Arg.Any<Keys[]>(), Arg.Any<KeyboardModifier>());
+            _keyboardHandler.DidNotReceive().HandleKeyboardKeyDown(Arg.Any<Keys[]>(), Arg.Any<Keys>(), Arg.Any<KeyboardModifier>());
+            _keyboardHandler.DidNotReceive().HandleKeyboardKeyRepeat(Arg.Any<Keys>(), Arg.Any<KeyboardModifier>());
+            _keyboardHandler.DidNotReceive().HandleKeyboardKeysReleased();
+        }
+
+        [DataTestMethod]
+        [DataRow(Keys.X, Keys.A, false)]
+        [DataRow(Keys.F1, Keys.BrowserBack, false)]
+        [DataRow(Keys.D0, Keys.NumPad0, true)]
+        [DataRow(Keys.RightAlt, Keys.LeftShift, true)]
+        [DataRow(Keys.X, Keys.RightShift, true)]
+        [DataRow(Keys.LeftControl, Keys.X, true)]
+        public void KeyboardInput_Should_Call_HandleKeyboardKeyRepeat_When_An_Older_Key_Is_Lost(Keys oldKey, Keys newKey, bool treatModifiersAsKeys)
+        {
+            // Arrange
+            _keyboardInput.TreatModifiersAsKeys = treatModifiersAsKeys;
+
+            var keyboardState = new KeyboardState(oldKey);
+            _keyboardInput.Poll(keyboardState);
+
+            var keyboardStateExtraKey = new KeyboardState(oldKey, newKey);
+
+            _keyboardInput.Poll(keyboardStateExtraKey);
+
+            var keyboardStateKeyLost = new KeyboardState(newKey);
+
+            _keyboardInput.Poll(keyboardStateKeyLost);
+
+            _testStopwatchProvider.AdvanceByMilliseconds(_keyboardInput.RepeatDelay);
+
+            _keyboardHandler.ClearReceivedCalls();
+
+            // Act
+            _keyboardInput.Poll(keyboardStateKeyLost);
+
+            // Assert
+            _keyboardHandler
+                .Received()
+                .HandleKeyboardKeyRepeat(
+                    Arg.Is<Keys>(k => k == newKey),
+                    Arg.Is<KeyboardModifier>(k => k == KeyboardModifier.None)
+                );
+
+            _keyboardHandler.DidNotReceive().HandleKeyboardKeyDown(Arg.Any<Keys[]>(), Arg.Any<Keys>(), Arg.Any<KeyboardModifier>());
+            _keyboardHandler.DidNotReceive().HandleKeyboardKeyLost(Arg.Any<Keys[]>(), Arg.Any<KeyboardModifier>());
+            _keyboardHandler.DidNotReceive().HandleKeyboardKeysReleased();
+        }
+
+
+        [DataTestMethod]
+        [DataRow(Keys.X, Keys.A, false)]
+        [DataRow(Keys.F1, Keys.BrowserBack, false)]
+        [DataRow(Keys.D0, Keys.NumPad0, true)]
+        [DataRow(Keys.RightAlt, Keys.LeftShift, true)]
+        [DataRow(Keys.X, Keys.RightShift, true)]
+        [DataRow(Keys.LeftControl, Keys.X, true)]
+        public void KeyboardInput_Should_Call_HandleKeyboardKeyRepeat_When_An_Older_Key_Is_Lost_And_New_Key_Pressed_Again(Keys oldKey, Keys newKey, bool treatModifiersAsKeys)
+        {
+            // Arrange
+            _keyboardInput.TreatModifiersAsKeys = treatModifiersAsKeys;
+
+            var keyboardState = new KeyboardState(oldKey);
+            _keyboardInput.Poll(keyboardState);
+
+            var keyboardStateExtraKey = new KeyboardState(oldKey, newKey);
+
+            _keyboardInput.Poll(keyboardStateExtraKey);
+
+            var keyboardStateKeyLost = new KeyboardState(newKey);
+
+            _keyboardInput.Poll(keyboardStateKeyLost);
+
+            _testStopwatchProvider.AdvanceByMilliseconds(_keyboardInput.RepeatDelay);
+
+            _keyboardInput.Poll(keyboardStateKeyLost);
+
+            _keyboardInput.Poll(keyboardStateExtraKey);
+
+            _testStopwatchProvider.AdvanceByMilliseconds(_keyboardInput.RepeatDelay);
+
+            _keyboardHandler.ClearReceivedCalls();
+
+            // Act
+            _keyboardInput.Poll(keyboardStateExtraKey);
+
+            // Assert
+            _keyboardHandler
+                .Received()
+                .HandleKeyboardKeyRepeat(
+                    Arg.Is<Keys>(k => k == oldKey),
+                    Arg.Is<KeyboardModifier>(k => k == KeyboardModifier.None)
+                );
+
+            _keyboardHandler.DidNotReceive().HandleKeyboardKeyDown(Arg.Any<Keys[]>(), Arg.Any<Keys>(), Arg.Any<KeyboardModifier>());
+            _keyboardHandler.DidNotReceive().HandleKeyboardKeyLost(Arg.Any<Keys[]>(), Arg.Any<KeyboardModifier>());
+            _keyboardHandler.DidNotReceive().HandleKeyboardKeysReleased();
+        }
+
+        [DataTestMethod]
         [DataRow(Keys.X, false)]
         [DataRow(Keys.F1, false)]
         [DataRow(Keys.NumPad0, true)]
@@ -962,9 +1092,6 @@ namespace InputHandlers.Tests
         [DataRow(Keys.RightAlt)]
         public void KeyboardInput_Should_Do_Nothing_If_Key_Is_Modifier_And_No_Other_Keys_Pressed(Keys modifierKey)
         {
-            // Arrange
-            _keyboardInput.UnmanagedKeys.Add(modifierKey);
-
             // Act
             var keyboardStateDown = new KeyboardState(modifierKey);
             _keyboardInput.Poll(keyboardStateDown);
