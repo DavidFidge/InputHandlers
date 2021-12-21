@@ -14,6 +14,7 @@ The library has 80% test code coverage.
 
 1) In your application, create a new KeyboardInput object.  You will want to do this in the initialization phase of your game.
 
+```
     public class MyGame
     {
         KeyboardInput _keyboardInput;
@@ -23,10 +24,11 @@ The library has 80% test code coverage.
             _keyboardInput = new KeyboardInput();
         }
     }
-
+```
 
 2) Create a new class that inherits from IKeyboardHandler.  Implement all the methods from the interface.
 
+```
     public class KeyboardHandler : IKeyboardHandler
     {
         public void HandleKeyboardKeyDown(Keys[] keysDown, Keys keyInFocus, KeyboardModifier keyboardModifier)
@@ -39,10 +41,11 @@ The library has 80% test code coverage.
 
         // Rest of interface implementation goes here
     }
-
+```
 
 3)  Subscribe your new keyboard handler to KeyboardInput by calling KeyboardInput.Subscribe
 
+```
     public class MyGame
     {
         KeyboardInput _keyboardInput;
@@ -61,9 +64,12 @@ The library has 80% test code coverage.
             _keyboardInput.Poll(Microsoft.Xna.Framework.Input.Keyboard.GetState());     
              base.Update(gameTime);
         }
+    }
+```
         
 4) In your game's Update method, call KeyboardInput.Poll
 
+```
     public class MyGame
     {
         KeyboardInput _keyboardInput;
@@ -82,11 +88,33 @@ The library has 80% test code coverage.
             _keyboardInput.Poll(Microsoft.Xna.Framework.Input.Keyboard.GetState());     
              base.Update(gameTime);
         }
+    }
+```
+
+Your KeyboardHandler will now receive a callback every time a keyboard event occurs when polling the keyboard during a game update.  You can subscribe as many keyboard handlers as you want and they will all receive a callback.  You can even subscribe and unsubscribe within a callback of a handler.
+
+The following properties can be changed on KeyboardInput to control how keyboard input works:
+
+**IsRepeatEnabled** - defaults to true - when true enables keyboard key repeat events when keyboard keys are held down
+
+**TreatModifiersAsKeys** - defaults to false - when true, shift alt and delete become keys in their own right and you'll receive key events for them.  If false, they are treated as modifiers only and will not send their own key events.
+
+**RepatDelay** - milliseconds - how long to hold down a key before it starts sending key repeat events
+
+**RepeatFrequency** - milliseconds - how often repeat events occur once key repeat events start occurring
+
+**UnmanagedKeys** - list of keys which you do not want the keyboard handler to handle
 
 
 ## Example - Mouse
 
 Setting up a mouse is almost identical to a keyboard.  You create a MouseInput object, create a new mouse handler class that inherits from IMouseHandler, implementing the methods, subscribe the handler to MouseInput and call MouseInput.Poll in your game's Update method
+
+```
+    public class MyGame
+    {
+        MouseInput _mouseInput;
+        MouseHandler _mouseHandler;
 
         public MyGame()
         {
@@ -101,22 +129,23 @@ Setting up a mouse is almost identical to a keyboard.  You create a MouseInput o
             _mouseInput.Poll(Microsoft.Xna.Framework.Input.Mouse.GetState());     
              base.Update(gameTime);
         }
+    }
         
-        public class MouseHandler : IMouseHandler
-        {
-            // Your IMouseHandler implementation goes here.
-        }
+    public class MouseHandler : IMouseHandler
+    {
+        // Your IMouseHandler implementation goes here.
+    }
+```
 
-
-Your KeyboardHandler will now receive a callback every time a keyboard event occurs when polling the keyboard during a game update.  You can subscribe as many keyboard handlers as you want and they will all receive a callback.  You can even subscribe and unsubscribe within a callback of a handler.
+Your MouseHandler will now receive a callback every time a mouse event occurs when polling the mouse during a game update.  You can subscribe as many mouse handlers as you want and they will all receive a callback.  You can even subscribe and unsubscribe within a callback of a handler.
  
 The following properties can be changed on MouseInput to control how mouse input works:
 
-DragVariance - defaults to 10 pixels - tolerance for when a left/right/middle button is held and moved is treated as a drag event rather than a left click.
+**DragVariance** - defaults to 10 pixels - tolerance for when a left/right/middle button is held and moved is treated as a drag event rather than a left click.
 
-DoubleClickDetectionTimeDelay - milliseconds - time where two clicks must occur for it to be treated as a double click rather than 2 single clicks.
+**DoubleClickDetectionTimeDelay** - milliseconds - time where two clicks must occur for it to be treated as a double click rather than 2 single clicks.
 
-IsLeftButtonEnabled, IsRightButtonEnabled, IsMiddleButtonEnabled - defaults to true - enables / disables the relevant button
+**IsLeftButtonEnabled, IsRightButtonEnabled, IsMiddleButtonEnabled** - defaults to true - enables / disables the relevant button
 
 
 ## Keyboard Events
