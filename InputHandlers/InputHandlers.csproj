@@ -1,23 +1,21 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netcoreapp3.1;net5.0</TargetFrameworks>
+    <TargetFramework>net6.0</TargetFramework>
+    <IsPackable>true</IsPackable>
     <RootNamespace>InputHandlers</RootNamespace>
-    <Version>1.5.0</Version>
-    <PackageId>InputHandlers.MonoGame</PackageId>
+    <Version>1.6.0</Version>
+    <PackageId>InputHandlers.MonoGame.WindowsDX</PackageId>
     <Authors>David Fidge</Authors>
     <Description>Input Handling library for MonoGame</Description>
-    <Copyright>Copyright 2021</Copyright>
+    <Copyright>Copyright 2022</Copyright>
     <PackageProjectUrl>https://github.com/DavidFidge/InputHandlers</PackageProjectUrl>
     <RepositoryUrl>https://github.com/DavidFidge/InputHandlers</RepositoryUrl>
-    <PackageReleaseNotes>Fixed keyboard state constantly firing key down and key lost events when TreatModifiersAsKeys is false and a modifier key is pressed along with another key.
-    
-Key repeats can now occur if a new key is pressed and an older key lost. This fixes an issue where there might be several milliseconds where a user begins pressing a new key before releasing the old one. This new behaviour is aligned to the way that windows key repeating behaves.
-
-Change target framework project setting to support both .Net Core 3.1 and .Net 5.0.</PackageReleaseNotes>
+    <PackageReleaseNotes>Upgrade MonoGame to 3.8.1. Change target framework project setting to support .Net 6 only.</PackageReleaseNotes>
     <PackageTags>MonoGame;Input;Mouse;Keyboard</PackageTags>
   </PropertyGroup>
+
   <ItemGroup>
-    <PackageReference Include="MonoGame.Framework.DesktopGL" Version="3.8.0.1641" />
+    <PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.1.303" />
   </ItemGroup>
 </Project>

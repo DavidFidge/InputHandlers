@@ -2,5 +2,6 @@
 [Oo]bj/
 [Pp]ackages/
 .vs/
+.idea/
 *.DotSettings.user
 *.nupkg

@@ -10,8 +10,8 @@
     <projectUrl>https://github.com/DireAussie/InputHandlers</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>$description$</description>
-    <releaseNotes>Update to .Net 5.0</releaseNotes>
-    <copyright>Copyright 2021</copyright>
+    <releaseNotes>Update to MonoGame 3.8.1</releaseNotes>
+    <copyright>Copyright 2022</copyright>
     <tags>MonoGame Input</tags>
   </metadata>
 </package>
