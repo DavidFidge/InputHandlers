@@ -18,7 +18,7 @@ jobs:
     - name: Build
       run: dotnet build --configuration Release ./InputHandlers/InputHandlers.csproj
     - name: Publish to NuGet
-      uses: brandedoutcast/publish-nuget@v2
+      uses: alirezanet/publish-nuget@v3.0.4
       with:
         PROJECT_FILE_PATH: InputHandlers/InputHandlers.csproj
         NUGET_KEY: ${{secrets.NUGET_API_KEY}}
