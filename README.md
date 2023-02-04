@@ -202,6 +202,9 @@ HandleMiddleMouseDragDone
 
 ## Version History
 
+### 1.6.0
+Updated to .NET 6 and MonoGame 3.8.1
+
 ### 1.5.0
 Fixed keyboard state constantly firing key down and key lost events when TreatModifiersAsKeys is false and a modifier key is pressed along with another key.
    
