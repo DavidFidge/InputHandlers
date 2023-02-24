@@ -1,12 +1,11 @@
 using System;
 
-namespace InputHandlers
+namespace InputHandlers;
+
+public interface IStopwatchProvider
 {
-    public interface IStopwatchProvider
-    {
-        void Start();
-        void Stop();
-        void Reset();
-        TimeSpan Elapsed { get; }
-    }
+    void Start();
+    void Stop();
+    void Reset();
+    TimeSpan Elapsed { get; }
 }

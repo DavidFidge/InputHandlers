@@ -1,15 +1,14 @@
 ﻿using System;
 
-namespace InputHandlers.Sample
+namespace InputHandlers.Sample;
+
+static class Program
 {
-    static class Program
+    static void Main(string[] args)
     {
-        static void Main(string[] args)
+        using (InputHandlersSample game = new InputHandlersSample())
         {
-            using (InputHandlersSample game = new InputHandlersSample())
-            {
-                game.Run();
-            }
+            game.Run();
         }
     }
 }
