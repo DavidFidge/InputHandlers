@@ -3,35 +3,34 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 
-namespace InputHandlers
+namespace InputHandlers;
+
+public class StopwatchProvider : IStopwatchProvider
 {
-    public class StopwatchProvider : IStopwatchProvider
+    private readonly Stopwatch _stopwatch;
+
+    public StopwatchProvider()
     {
-        private readonly Stopwatch _stopwatch;
+        _stopwatch = new Stopwatch();
+    }
 
-        public StopwatchProvider()
-        {
-            _stopwatch = new Stopwatch();
-        }
+    public void Start()
+    {
+        _stopwatch.Start();
+    }
 
-        public void Start()
-        {
-            _stopwatch.Start();
-        }
+    public void Stop()
+    {
+        _stopwatch.Stop();
+    }
 
-        public void Stop()
-        {
-            _stopwatch.Stop();
-        }
+    public void Reset()
+    {
+        _stopwatch.Reset();
+    }
 
-        public void Reset()
-        {
-            _stopwatch.Reset();
-        }
-
-        public TimeSpan Elapsed
-        {
-            get { return _stopwatch.Elapsed; }
-        }
+    public TimeSpan Elapsed
+    {
+        get { return _stopwatch.Elapsed; }
     }
 }

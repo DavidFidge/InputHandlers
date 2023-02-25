@@ -1,14 +1,20 @@
 # InputHandlers
-A library for handling keyboard and mouse input in MonoGame.  Compiled against DesktopGL.  A WindowsDX branch is also maintained.  NuGet packages are provided for both.  If using the source directly rather than nuget packages, you can git checkout WindowsDX to use the WindowsDX version.
+A library for handling keyboard and mouse input in MonoGame. The master branch is compiled against DesktopGL. A WindowsDX branch is also maintained. NuGet packages are provided for both. If using a project reference, git checkout master for DesktopGL and git checkout WindowsDX for WindowsDX.
 
+This library vastly reduces the amount of boilerplate, repetitive code that you would have to implement yourself in your own project.
 
 ## Overview
-This library processes mouse and keyboard updates from XNA and broadcasts changes in state to subscribers.  You subscribe to changes by implementing IMouseHandler and IKeyboardHandler and passing them to MouseInput and KeyboardInput.  Upon each Poll call, your subscription(s) will receive calls if any change of state occurred.
+This library processes mouse and keyboard updates from MonoGame and broadcasts them out as common changes of state that user interfaces typically need. For the mouse, it detects mouse single clicks, double clicks, dragging etc. For the keyboard, it detects key down, key up, key repeating etc.
+
+You can change various aspects of the input processing, for example, how long to wait between clicks for a double click to be detected, how long a key is held down before a key starts repeating.
+
+The library is subscriber-based. You implement IMouseHandler and IKeyboardHandler, then call Subscribe, passing in your handler. Upon each Poll call, your subscription(s) will receive calls if any change of state occurred.
+
+You can have multiple handlers subscribed at once and remove or add subscribed handlers at any time. This works great for screen transitions - for example, in a game the player may press 'i' to open their inventory. At that point you can swap out a keyboard handler that manages the main game for a keyboard handler that manages the inventory screen.
 
 A sample project is provided which shows how the events work and how to use the library.
 
-The library has 80% test code coverage.
-
+The library has 83% test coverage.
 
 ## Example - Keyboard
 
@@ -99,12 +105,13 @@ The following properties can be changed on KeyboardInput to control how keyboard
 
 **TreatModifiersAsKeys** - defaults to false - when true, shift alt and delete become keys in their own right and you'll receive key events for them.  If false, they are treated as modifiers only and will not send their own key events.
 
-**RepatDelay** - milliseconds - how long to hold down a key before it starts sending key repeat events
+**RepeatDelay** - milliseconds - how long to hold down a key before it starts sending key repeat events
 
 **RepeatFrequency** - milliseconds - how often repeat events occur once key repeat events start occurring
 
 **UnmanagedKeys** - list of keys which you do not want the keyboard handler to handle
 
+**WaitForNeutralStateBeforeApplyingNewSubscriptions** - Whether to wait for a neutral keyboard state before applying new pending subscriptions. Removal of subscriptions is still performed immediately. Defaults to False.
 
 ## Example - Mouse
 
@@ -147,6 +154,9 @@ The following properties can be changed on MouseInput to control how mouse input
 
 **IsLeftButtonEnabled, IsRightButtonEnabled, IsMiddleButtonEnabled** - defaults to true - enables / disables the relevant button
 
+**WaitForNeutralStateBeforeApplyingNewSubscriptions** - Whether to wait for a neutral mouse state before applying new pending subscriptions. Removal of subscriptions is still performed immediately. Defaults to False. You may want to use this in the event where you detected a mouse down event to close a window and changed the mouse handler subscriptions. It will stop the subsequent mouse up and click event going to the new handler on the next poll. Note it will not suppress a double click event - you would need to call ResetDoubleClickDetection().
+
+**ResetDoubleClickDetection()** - Resets double click detection (clears left, middle and right all at once). Useful for certain scenarios where you don't want the possibility of a double click being performed after a single click (or other action) has been handled and you don't want a double click to happen.
 
 ## Keyboard Events
 HandleKeyboardKeyDown
@@ -201,6 +211,13 @@ HandleMiddleMouseDragDone
 
 
 ## Version History
+
+### 1.7.0
+Pending subscriptions are now internally time stamped. Prior to this, if you called Remove subscription and immediately performed Add with one of the added objects being one of those in the set being removed then the add would not happen. Now the order of remove and add calls are known and this scenario will now work as expected.
+
+Added WaitForNeutralStateBeforeApplyingNewSubscriptions flag so that you can suppress events being fired to a new subscription until a neutral state has been achieved (i.e. for mouse, mouse is not moving and no buttons pressed, and for keyboard, no keys are down).
+
+Added ResetDoubleClickDetection() method so that you can manually reset the double click detection state. As an example, this can be useful if you want to suppress a double click from happening after a single click has been handled. 
 
 ### 1.6.0
 Updated to .NET 6 and MonoGame 3.8.1
