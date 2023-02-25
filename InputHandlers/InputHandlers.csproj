@@ -4,14 +4,14 @@
     <TargetFramework>net6.0-windows</TargetFramework>
     <IsPackable>true</IsPackable>
     <RootNamespace>InputHandlers</RootNamespace>
-    <Version>1.6.0</Version>
+    <Version>1.7.0</Version>
     <PackageId>InputHandlers.MonoGame.WindowsDX</PackageId>
     <Authors>David Fidge</Authors>
-    <Description>Input Handling library for MonoGame</Description>
+    <Description>Input Handling library for MonoGame. For more information, go to the Github page using the Project Website link.</Description>
     <Copyright>Copyright 2022</Copyright>
     <PackageProjectUrl>https://github.com/DavidFidge/InputHandlers</PackageProjectUrl>
     <RepositoryUrl>https://github.com/DavidFidge/InputHandlers</RepositoryUrl>
-    <PackageReleaseNotes>Upgrade MonoGame to 3.8.1. Change target framework project setting to support .Net 6 only.</PackageReleaseNotes>
+    <PackageReleaseNotes>Added subscription timestamps. Added a flag so that subscription adds can be delayed until an input rest state is achieved.</PackageReleaseNotes>
     <PackageTags>MonoGame;Input;Mouse;Keyboard</PackageTags>
   </PropertyGroup>
 
