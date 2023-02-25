@@ -1,8 +1,6 @@
 name: InputHandlers Publish NuGet
 
-on:
-  push:
-    branches: [ master, WindowsDX ]
+on: workflow_dispatch
 
 jobs:
   publish-nuget:
