@@ -1,9 +1,5 @@
-using System.Collections.Generic;
-using System;
-using System.Linq;
 using InputHandlers.State;
 using InputHandlers.StateMachine;
-using Microsoft.Xna.Framework.Input;
 
 namespace InputHandlers.Keyboard;
 

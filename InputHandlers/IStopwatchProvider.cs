@@ -1,5 +1,3 @@
-using System;
-
 namespace InputHandlers;
 
 public interface IStopwatchProvider
