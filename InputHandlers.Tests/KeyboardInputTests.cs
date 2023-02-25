@@ -1542,7 +1542,9 @@ public class KeyboardInputTests
     [DataRow(Keys.RightShift, KeyboardModifier.Shift)]
     [DataRow(Keys.LeftAlt, KeyboardModifier.Alt)]
     [DataRow(Keys.RightAlt, KeyboardModifier.Alt)]
-    public void KeyboardInput_Should_Begin_Repeating_Again_With_Modifier_After_Resetting_Repeat_Timer_When_Modifiers_Change(Keys key, KeyboardModifier keyboardModifier)
+    public void
+        KeyboardInput_Should_Begin_Repeating_Again_With_Modifier_After_Resetting_Repeat_Timer_When_Modifiers_Change(
+            Keys key, KeyboardModifier keyboardModifier)
     {
         // Arrange
         var keyboardState = new KeyboardState(Keys.A);
@@ -1569,16 +1571,102 @@ public class KeyboardInputTests
             );
 
         _keyboardHandler.DidNotReceive().HandleKeyboardKeyLost(Arg.Any<Keys[]>(), Arg.Any<KeyboardModifier>());
-        _keyboardHandler.DidNotReceive().HandleKeyboardKeyDown(Arg.Any<Keys[]>(), Arg.Any<Keys>(), Arg.Any<KeyboardModifier>());
+        _keyboardHandler.DidNotReceive()
+            .HandleKeyboardKeyDown(Arg.Any<Keys[]>(), Arg.Any<Keys>(), Arg.Any<KeyboardModifier>());
         _keyboardHandler.DidNotReceive().HandleKeyboardKeysReleased();
     }
     
     [TestMethod]
-    public void WaitForNeutralStateBeforeApplyingNewSubscriptions()
+    public void Should_Not_Send_Event_Before_Neutral_State_When_WaitForNeutralStateBeforeApplyingNewSubscriptions_Is_True_For_New_Subscriptions()
     {
-        Assert.Fail();
-    } 
+        // Arrange
+        var secondKeyboardHandler = Substitute.For<IKeyboardHandler>();
 
+        _keyboardInput.WaitForNeutralStateBeforeApplyingNewSubscriptions = true;
+
+        var keyboardState = new KeyboardState(Keys.A);
+
+        _keyboardInput.Poll(keyboardState);
+        
+        // Act
+        _keyboardInput.Unsubscribe(_keyboardHandler);
+        _keyboardInput.Subscribe(secondKeyboardHandler);
+
+        var keyboardStateNeutral = new KeyboardState();
+
+        _keyboardInput.Poll(keyboardStateNeutral);
+
+        // Assert
+        _keyboardHandler
+            .DidNotReceive()
+            .HandleKeyboardKeysReleased();
+
+        secondKeyboardHandler
+            .DidNotReceive()
+            .HandleKeyboardKeysReleased();
+    }
+
+    [TestMethod]
+    public void Should_Send_Event_Before_Neutral_State_When_WaitForNeutralStateBeforeApplyingNewSubscriptions_Is_False_For_New_Subscriptions()
+    {
+        // Arrange
+        var secondKeyboardHandler = Substitute.For<IKeyboardHandler>();
+
+        _keyboardInput.WaitForNeutralStateBeforeApplyingNewSubscriptions = false;
+
+        var keyboardState = new KeyboardState(Keys.A);
+
+        _keyboardInput.Poll(keyboardState);
+        
+        // Act
+        _keyboardInput.Unsubscribe(_keyboardHandler);
+        _keyboardInput.Subscribe(secondKeyboardHandler);
+
+        var keyboardStateNeutral = new KeyboardState();
+
+        _keyboardInput.Poll(keyboardStateNeutral);
+
+        // Assert
+        _keyboardHandler
+            .DidNotReceive()
+            .HandleKeyboardKeysReleased();
+
+        secondKeyboardHandler
+            .Received()
+            .HandleKeyboardKeysReleased();
+    }
+    
+    [TestMethod]
+    public void Should_Send_Event_After_Neutral_State_Achieved_When_WaitForNeutralStateBeforeApplyingNewSubscriptions_Is_True()
+    {
+        // Arrange
+        var secondKeyboardHandler = Substitute.For<IKeyboardHandler>();
+
+        _keyboardInput.WaitForNeutralStateBeforeApplyingNewSubscriptions = true;
+
+        var keyboardState = new KeyboardState(Keys.A);
+
+        _keyboardInput.Poll(keyboardState);
+        
+        _keyboardInput.Unsubscribe(_keyboardHandler);
+        _keyboardInput.Subscribe(secondKeyboardHandler);
+
+        var keyboardStateNeutral = new KeyboardState();
+
+        _keyboardInput.Poll(keyboardStateNeutral);
+
+        // Act
+        _keyboardInput.Poll(keyboardState);
+        
+        // Assert
+        secondKeyboardHandler
+            .Received()
+            .HandleKeyboardKeyDown(    Arg.Is<Keys[]>(k => AssertKeysMatch(k, Keys.A)),
+                Arg.Is(Keys.A),
+                Arg.Is<KeyboardModifier>(k => k == KeyboardModifier.None)
+            );
+    }
+    
     private bool AssertKeysMatch(Keys[] actual, params Keys[] expected)
     {
         var expectedInEnumOrder = expected

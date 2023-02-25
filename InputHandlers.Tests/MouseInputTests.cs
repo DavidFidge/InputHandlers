@@ -1692,8 +1692,139 @@ public class MouseInputTests
     }
     
     [TestMethod]
-    public void WaitForNeutralStateBeforeApplyingNewSubscriptions()
+    public void Should_Not_Send_Event_Before_Neutral_State_When_WaitForNeutralStateBeforeApplyingNewSubscriptions_Is_True_For_New_Subscriptions()
     {
-        Assert.Fail();
+        // Arrange
+        var secondMouseHandler = Substitute.For<IMouseHandler>();
+
+        _mouseInput.WaitForNeutralStateBeforeApplyingNewSubscriptions = true;
+            
+        var mouseStateLeftPressed = new MouseState(
+            0,
+            0,
+            0,
+            ButtonState.Pressed,
+            ButtonState.Released,
+            ButtonState.Released,
+            ButtonState.Released,
+            ButtonState.Released
+        );
+        
+        _mouseInput.Poll(mouseStateLeftPressed);
+
+        // Act
+        _mouseInput.Subscribe(secondMouseHandler);
+        _mouseInput.Unsubscribe(_mouseHandler);
+        
+        var mouseStateNeutral = new MouseState(
+            0,
+            0,
+            0,
+            ButtonState.Released,
+            ButtonState.Released,
+            ButtonState.Released,
+            ButtonState.Released,
+            ButtonState.Released
+        );
+        
+        _mouseInput.Poll(mouseStateNeutral);
+
+        // Assert
+        _mouseHandler.DidNotReceive().HandleLeftMouseClick(Arg.Any<MouseState>(), Arg.Any<MouseState>());
+        secondMouseHandler.DidNotReceive().HandleLeftMouseClick(Arg.Any<MouseState>(), Arg.Any<MouseState>());
+        secondMouseHandler.DidNotReceive().HandleLeftMouseUp(Arg.Any<MouseState>(), Arg.Any<MouseState>());
+    }
+    
+    [TestMethod]
+    public void Should_Send_Event_Before_Neutral_State_When_WaitForNeutralStateBeforeApplyingNewSubscriptions_Is_False_For_New_Subscriptions()
+    {
+        // Arrange
+        var secondMouseHandler = Substitute.For<IMouseHandler>();
+
+        _mouseInput.WaitForNeutralStateBeforeApplyingNewSubscriptions = false;
+            
+        var mouseStateLeftPressed = new MouseState(
+            0,
+            0,
+            0,
+            ButtonState.Pressed,
+            ButtonState.Released,
+            ButtonState.Released,
+            ButtonState.Released,
+            ButtonState.Released
+        );
+        
+        _mouseInput.Poll(mouseStateLeftPressed);
+
+        // Act
+        _mouseInput.Subscribe(secondMouseHandler);
+        _mouseInput.Unsubscribe(_mouseHandler);
+        
+        var mouseStateNeutral = new MouseState(
+            0,
+            0,
+            0,
+            ButtonState.Released,
+            ButtonState.Released,
+            ButtonState.Released,
+            ButtonState.Released,
+            ButtonState.Released
+        );
+        
+        _mouseInput.Poll(mouseStateNeutral);
+
+        // Assert
+        _mouseHandler.DidNotReceive().HandleLeftMouseClick(Arg.Any<MouseState>(), Arg.Any<MouseState>());
+        secondMouseHandler.Received().HandleLeftMouseClick(Arg.Is(mouseStateNeutral), Arg.Is(mouseStateLeftPressed));
+        secondMouseHandler.Received().HandleLeftMouseUp(Arg.Is(mouseStateNeutral), Arg.Is(mouseStateLeftPressed));
+    }
+    
+    [TestMethod]
+    public void Should_Send_Event_After_Neutral_State_Achieved_When_WaitForNeutralStateBeforeApplyingNewSubscriptions_Is_True()
+    {
+        // Arrange
+        var secondMouseHandler = Substitute.For<IMouseHandler>();
+
+        _mouseInput.WaitForNeutralStateBeforeApplyingNewSubscriptions = true;
+            
+        var mouseStateLeftPressed = new MouseState(
+            0,
+            0,
+            0,
+            ButtonState.Pressed,
+            ButtonState.Released,
+            ButtonState.Released,
+            ButtonState.Released,
+            ButtonState.Released
+        );
+        
+        _mouseInput.Poll(mouseStateLeftPressed);
+
+        _mouseInput.Subscribe(secondMouseHandler);
+        _mouseInput.Unsubscribe(_mouseHandler);
+        
+        var mouseStateNeutral = new MouseState(
+            0,
+            0,
+            0,
+            ButtonState.Released,
+            ButtonState.Released,
+            ButtonState.Released,
+            ButtonState.Released,
+            ButtonState.Released
+        );
+        
+        _mouseInput.Poll(mouseStateNeutral);
+        
+        //need to aadvance time to prevent double click event
+        this._testStopwatchProvider.AdvanceByMilliseconds(3000);
+
+        // Act
+        _mouseInput.Poll(mouseStateLeftPressed);
+
+        // Assert
+        secondMouseHandler
+            .Received()
+            .HandleLeftMouseDown(Arg.Is(mouseStateLeftPressed));
     }
 }
