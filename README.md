@@ -1,12 +1,10 @@
 # InputHandlers
 A library for handling keyboard and mouse input in MonoGame. The master branch is compiled against DesktopGL. A WindowsDX branch is also maintained. NuGet packages are provided for both. If using a project reference, git checkout master for DesktopGL and git checkout WindowsDX for WindowsDX.
 
-This library vastly reduces the amount of boilerplate, repetitive code that you would have to implement yourself in your own project.
-
 ## Overview
 This library processes mouse and keyboard updates from MonoGame and broadcasts them out as common changes of state that user interfaces typically need. For the mouse, it detects mouse single clicks, double clicks, dragging etc. For the keyboard, it detects key down, key up, key repeating etc.
 
-You can change various aspects of the input processing, for example, how long to wait between clicks for a double click to be detected, how long a key is held down before a key starts repeating.
+You can change various aspects of the behaviour, for example, how long to wait between clicks for a double click to be detected, how long a key is held down before a key starts repeating, whether shift/alt/ctrl are treated as keys or modifiers etc.
 
 The library is subscriber-based. You implement IMouseHandler and IKeyboardHandler, then call Subscribe, passing in your handler. Upon each Poll call, your subscription(s) will receive calls if any change of state occurred.
 
@@ -15,6 +13,8 @@ You can have multiple handlers subscribed at once and remove or add subscribed h
 A sample project is provided which shows how the events work and how to use the library.
 
 The library has 83% test coverage.
+
+This library vastly reduces the amount of boilerplate, repetitive code that you would have to implement yourself in your own project.
 
 ## Example - Keyboard
 
