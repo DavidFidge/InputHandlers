@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace InputHandlers.Mouse;
+﻿namespace InputHandlers.Mouse;
 
 public class MouseHandlerSubscription
 {

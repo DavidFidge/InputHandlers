@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace InputHandlers.Keyboard;
+﻿namespace InputHandlers.Keyboard;
 
 public class KeyboardHandlerSubscription
 {

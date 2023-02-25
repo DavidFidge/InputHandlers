@@ -1,5 +1,3 @@
-using Microsoft.Xna.Framework.Input;
-
 namespace InputHandlers.Mouse;
 
 public interface IMouseHandler
