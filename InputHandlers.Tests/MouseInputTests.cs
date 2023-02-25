@@ -687,6 +687,85 @@ public class MouseInputTests
         _mouseHandler.DidNotReceive().HandleLeftMouseDown(Arg.Any<MouseState>());
         _mouseHandler.DidNotReceive().HandleLeftMouseUp(Arg.Any<MouseState>(), Arg.Any<MouseState>());
     }
+    
+    [TestMethod]
+    public void MouseInput_Should_Not_Call_HandleLeftMouseDoubleClick_If_ResetDoubleClickDetection_Is_Called()
+    {
+        // Arrange
+        var mouseStatePressed = new MouseState(
+            0,
+            0,
+            0,
+            ButtonState.Pressed,
+            ButtonState.Released,
+            ButtonState.Released,
+            ButtonState.Released,
+            ButtonState.Released
+        );
+
+        _mouseInput.Poll(mouseStatePressed);
+
+        var mouseStateFirstRelease = new MouseState(
+            0,
+            0,
+            0,
+            ButtonState.Released,
+            ButtonState.Released,
+            ButtonState.Released,
+            ButtonState.Released,
+            ButtonState.Released
+        );
+
+        _testStopwatchProvider.AdvanceByMilliseconds(1);
+        _mouseInput.Poll(mouseStateFirstRelease);
+
+        var mouseStateSecondClick = new MouseState(
+            0,
+            0,
+            0,
+            ButtonState.Pressed,
+            ButtonState.Released,
+            ButtonState.Released,
+            ButtonState.Released,
+            ButtonState.Released
+        );
+
+        _testStopwatchProvider.Elapsed = new TimeSpan(0, 0, 0, 0, _mouseInput.DoubleClickDetectionTimeDelay);
+        _mouseHandler.ClearReceivedCalls();
+
+        // Act
+        _mouseInput.ResetDoubleClickDetection();
+        _mouseInput.Poll(mouseStateSecondClick);
+
+        // Assert
+        _mouseHandler.Received().HandleLeftMouseDown(Arg.Is(mouseStateSecondClick));
+        _mouseHandler.DidNotReceive().HandleLeftMouseDoubleClick(Arg.Any<MouseState>(), Arg.Any<MouseState>());
+        _mouseHandler.DidNotReceive().HandleLeftMouseClick(Arg.Any<MouseState>(), Arg.Any<MouseState>());
+        _mouseHandler.DidNotReceive().HandleLeftMouseUp(Arg.Any<MouseState>(), Arg.Any<MouseState>());
+
+        // Act - Releasing
+        _mouseHandler.ClearReceivedCalls();
+
+        var mouseStateReleased = new MouseState(
+            0,
+            0,
+            0,
+            ButtonState.Released,
+            ButtonState.Released,
+            ButtonState.Released,
+            ButtonState.Released,
+            ButtonState.Released
+        );
+
+        _testStopwatchProvider.AdvanceByMilliseconds(1);
+        _mouseInput.Poll(mouseStateReleased);
+
+        // Assert - Releasing
+        _mouseHandler.DidNotReceive().HandleLeftMouseDoubleClick(Arg.Any<MouseState>(), Arg.Any<MouseState>());
+        _mouseHandler.DidNotReceive().HandleLeftMouseDown(Arg.Any<MouseState>());
+        _mouseHandler.Received().HandleLeftMouseClick(Arg.Is(mouseStateReleased), Arg.Is(mouseStateSecondClick));
+        _mouseHandler.Received().HandleLeftMouseUp(Arg.Is(mouseStateReleased), Arg.Is(mouseStateSecondClick));
+    }
 
     [TestMethod]
     public void MouseInput_Should_Not_Call_HandleLeftMouseDoubleClick_If_DoubleClickDetection_Time_Has_Passed()
@@ -1097,6 +1176,83 @@ public class MouseInputTests
         _mouseHandler.DidNotReceive().HandleRightMouseClick(Arg.Any<MouseState>(), Arg.Any<MouseState>());
         _mouseHandler.DidNotReceive().HandleRightMouseDown(Arg.Any<MouseState>());
         _mouseHandler.DidNotReceive().HandleRightMouseUp(Arg.Any<MouseState>(), Arg.Any<MouseState>());
+    }
+    
+    [TestMethod]
+    public void MouseInput_Should_Not_Call_HandleRightMouseDoubleClick_If_ResetDoubleClickDetection_Is_Called()
+    {
+        // Arrange
+        var mouseStatePressed = new MouseState(
+            0,
+            0,
+            0,
+            ButtonState.Released,
+            ButtonState.Released,
+            ButtonState.Pressed,
+            ButtonState.Released,
+            ButtonState.Released);
+
+        _mouseInput.Poll(mouseStatePressed);
+
+        var mouseStateFirstRelease = new MouseState(
+            0,
+            0,
+            0,
+            ButtonState.Released,
+            ButtonState.Released,
+            ButtonState.Released,
+            ButtonState.Released,
+            ButtonState.Released
+        );
+
+        _testStopwatchProvider.AdvanceByMilliseconds(1);
+        _mouseInput.Poll(mouseStateFirstRelease);
+
+        var mouseStateSecondClick = new MouseState(
+            0,
+            0,
+            0,
+            ButtonState.Released,
+            ButtonState.Released,
+            ButtonState.Pressed,
+            ButtonState.Released,
+            ButtonState.Released);
+
+        _testStopwatchProvider.Elapsed = new TimeSpan(0, 0, 0, 0, _mouseInput.DoubleClickDetectionTimeDelay);
+        _mouseHandler.ClearReceivedCalls();
+
+        // Act
+        _mouseInput.ResetDoubleClickDetection();
+        _mouseInput.Poll(mouseStateSecondClick);
+
+        // Assert
+        _mouseHandler.Received().HandleRightMouseDown(Arg.Is(mouseStateSecondClick));
+        _mouseHandler.DidNotReceive().HandleRightMouseDoubleClick(Arg.Any<MouseState>(), Arg.Any<MouseState>());
+        _mouseHandler.DidNotReceive().HandleRightMouseClick(Arg.Any<MouseState>(), Arg.Any<MouseState>());
+        _mouseHandler.DidNotReceive().HandleRightMouseUp(Arg.Any<MouseState>(), Arg.Any<MouseState>());
+
+        // Act - Releasing
+        _mouseHandler.ClearReceivedCalls();
+
+        var mouseStateReleased = new MouseState(
+            0,
+            0,
+            0,
+            ButtonState.Released,
+            ButtonState.Released,
+            ButtonState.Released,
+            ButtonState.Released,
+            ButtonState.Released
+        );
+
+        _testStopwatchProvider.AdvanceByMilliseconds(1);
+        _mouseInput.Poll(mouseStateReleased);
+
+        // Assert - Releasing
+        _mouseHandler.DidNotReceive().HandleRightMouseDoubleClick(Arg.Any<MouseState>(), Arg.Any<MouseState>());
+        _mouseHandler.DidNotReceive().HandleRightMouseDown(Arg.Any<MouseState>());
+        _mouseHandler.Received().HandleRightMouseClick(Arg.Is(mouseStateReleased), Arg.Is(mouseStateSecondClick));
+        _mouseHandler.Received().HandleRightMouseUp(Arg.Is(mouseStateReleased), Arg.Is(mouseStateSecondClick));
     }
 
     [TestMethod]
@@ -1510,6 +1666,85 @@ public class MouseInputTests
         _mouseHandler.DidNotReceive().HandleMiddleMouseDown(Arg.Any<MouseState>());
         _mouseHandler.DidNotReceive().HandleMiddleMouseUp(Arg.Any<MouseState>(), Arg.Any<MouseState>());
     }
+    
+    [TestMethod]
+    public void MouseInput_Should_Not_Call_HandleMiddleMouseDoubleClick_If_ResetDoubleClickDetection_Is_Called()
+    {
+        // Arrange
+        var mouseStatePressed = new MouseState(
+            0,
+            0,
+            0,
+            ButtonState.Released,
+            ButtonState.Pressed,
+            ButtonState.Released,
+            ButtonState.Released,
+            ButtonState.Released
+        );
+
+        _mouseInput.Poll(mouseStatePressed);
+
+        var mouseStateFirstRelease = new MouseState(
+            0,
+            0,
+            0,
+            ButtonState.Released,
+            ButtonState.Released,
+            ButtonState.Released,
+            ButtonState.Released,
+            ButtonState.Released
+        );
+
+        _testStopwatchProvider.AdvanceByMilliseconds(1);
+        _mouseInput.Poll(mouseStateFirstRelease);
+
+        var mouseStateSecondClick = new MouseState(
+            0,
+            0,
+            0,
+            ButtonState.Released,
+            ButtonState.Pressed,
+            ButtonState.Released,
+            ButtonState.Released,
+            ButtonState.Released
+        );
+
+        _testStopwatchProvider.Elapsed = new TimeSpan(0, 0, 0, 0, _mouseInput.DoubleClickDetectionTimeDelay);
+        _mouseHandler.ClearReceivedCalls();
+
+        // Act
+        _mouseInput.ResetDoubleClickDetection();
+        _mouseInput.Poll(mouseStateSecondClick);
+
+        // Assert
+        _mouseHandler.Received().HandleMiddleMouseDown(Arg.Is(mouseStateSecondClick));
+        _mouseHandler.DidNotReceive().HandleMiddleMouseDoubleClick(Arg.Any<MouseState>(), Arg.Any<MouseState>());
+        _mouseHandler.DidNotReceive().HandleMiddleMouseClick(Arg.Any<MouseState>(), Arg.Any<MouseState>());
+        _mouseHandler.DidNotReceive().HandleMiddleMouseUp(Arg.Any<MouseState>(), Arg.Any<MouseState>());
+
+        // Act - Releasing
+        _mouseHandler.ClearReceivedCalls();
+
+        var mouseStateReleased = new MouseState(
+            0,
+            0,
+            0,
+            ButtonState.Released,
+            ButtonState.Released,
+            ButtonState.Released,
+            ButtonState.Released,
+            ButtonState.Released
+        );
+
+        _testStopwatchProvider.AdvanceByMilliseconds(1);
+        _mouseInput.Poll(mouseStateReleased);
+
+        // Assert - Releasing
+        _mouseHandler.DidNotReceive().HandleMiddleMouseDoubleClick(Arg.Any<MouseState>(), Arg.Any<MouseState>());
+        _mouseHandler.DidNotReceive().HandleMiddleMouseDown(Arg.Any<MouseState>());
+        _mouseHandler.Received().HandleMiddleMouseClick(Arg.Is(mouseStateReleased), Arg.Is(mouseStateSecondClick));
+        _mouseHandler.Received().HandleMiddleMouseUp(Arg.Is(mouseStateReleased), Arg.Is(mouseStateSecondClick));
+    }
 
     [TestMethod]
     public void MouseInput_Should_Not_Call_HandleMiddleMouseDoubleClick_If_DoubleClickDetection_Time_Has_Passed()
@@ -1816,8 +2051,9 @@ public class MouseInputTests
         
         _mouseInput.Poll(mouseStateNeutral);
         
-        //need to aadvance time to prevent double click event
-        this._testStopwatchProvider.AdvanceByMilliseconds(3000);
+        // The WaitForNeutralStateBeforeApplyingNewSubscriptions feature does not automatically reset state related to detecting double clicks. 
+        // Handlers must call ResetDoubleClickDetection manually if they need to suppress double click events going to another handler.
+        _mouseInput.ResetDoubleClickDetection();
 
         // Act
         _mouseInput.Poll(mouseStateLeftPressed);

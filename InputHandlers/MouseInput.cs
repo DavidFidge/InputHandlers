@@ -308,6 +308,20 @@ public class MouseInput : IMouseInput
         _mouseStateMachine.SetPreviousState(_mouseStationaryState);
     }
 
+    /// <summary>
+    /// Use this if you want to suppress double click detection (clears left, middle and right all at once).
+    /// May be useful for scenarios where you want to suppress clicks under some circumstances e.g. if the user
+    /// double clicks a button to close a window rather than single clicks and the click is subsequently
+    /// detected afterwards incorrectly as a different action. You could call this after the window closes
+    /// to suppress the double click. 
+    /// </summary>
+    public void ResetDoubleClickDetection()
+    {
+        _mouseLeftDownState.ResetDoubleClickDetection();
+        _mouseRightDownState.ResetDoubleClickDetection();
+        _mouseMiddleDownState.ResetDoubleClickDetection();
+    }
+
     public string CurrentStateAsString()
     {
         return _mouseStateMachine.GetCurrentStateTypeName();
@@ -480,6 +494,11 @@ public class MouseInput : IMouseInput
         }
 
         public override void Reset(MouseInput mouseInput)
+        {
+            ResetDoubleClickDetection();
+        }
+
+        public void ResetDoubleClickDetection()
         {
             _detectDoubleClickTime = double.NegativeInfinity;
             _wasDoubleClickDone = false;
