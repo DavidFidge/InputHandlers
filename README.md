@@ -18,7 +18,7 @@ This library vastly reduces the amount of boilerplate, repetitive code that you 
 
 ## Example - Keyboard
 
-1) In your application, create a new KeyboardInput object.  You will want to do this in the initialization phase of your game.
+1) In your application, create a new KeyboardInput object.  You will want to do this in the initialization phase of your game:
 
 ```
     public class MyGame
@@ -32,7 +32,7 @@ This library vastly reduces the amount of boilerplate, repetitive code that you 
     }
 ```
 
-2) Create a new class that inherits from IKeyboardHandler.  Implement all the methods from the interface.
+2) Create a new class that inherits from IKeyboardHandler.  Implement all the methods from the interface:
 
 ```
     public class KeyboardHandler : IKeyboardHandler
@@ -49,7 +49,7 @@ This library vastly reduces the amount of boilerplate, repetitive code that you 
     }
 ```
 
-3)  Subscribe your new keyboard handler to KeyboardInput by calling KeyboardInput.Subscribe
+3)  Subscribe your new keyboard handler to KeyboardInput by calling KeyboardInput.Subscribe:
 
 ```
     public class MyGame
@@ -73,7 +73,7 @@ This library vastly reduces the amount of boilerplate, repetitive code that you 
     }
 ```
         
-4) In your game's Update method, call KeyboardInput.Poll
+4) In your game's Update method, call KeyboardInput.Poll:
 
 ```
     public class MyGame
@@ -115,7 +115,7 @@ The following properties can be changed on KeyboardInput to control how keyboard
 
 ## Example - Mouse
 
-Setting up a mouse is almost identical to a keyboard.  You create a MouseInput object, create a new mouse handler class that inherits from IMouseHandler, implementing the methods, subscribe the handler to MouseInput and call MouseInput.Poll in your game's Update method
+Setting up a mouse is almost identical to a keyboard.  You create a MouseInput object, create a new mouse handler class that inherits from IMouseHandler, implementing the methods, subscribe the handler to MouseInput and call MouseInput.Poll in your game's Update method:
 
 ```
     public class MyGame
