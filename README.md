@@ -1,12 +1,10 @@
 # InputHandlers
 A library for handling keyboard and mouse input in MonoGame. The master branch is compiled against DesktopGL. A WindowsDX branch is also maintained. NuGet packages are provided for both. If using a project reference, git checkout master for DesktopGL and git checkout WindowsDX for WindowsDX.
 
-This library vastly reduces the amount of boilerplate, repetitive code that you would have to implement yourself in your own project.
-
 ## Overview
 This library processes mouse and keyboard updates from MonoGame and broadcasts them out as common changes of state that user interfaces typically need. For the mouse, it detects mouse single clicks, double clicks, dragging etc. For the keyboard, it detects key down, key up, key repeating etc.
 
-You can change various aspects of the input processing, for example, how long to wait between clicks for a double click to be detected, how long a key is held down before a key starts repeating.
+You can change various aspects of the behaviour, for example, how long to wait between clicks for a double click to be detected, how long a key is held down before a key starts repeating, whether shift/alt/ctrl are treated as keys or modifiers etc.
 
 The library is subscriber-based. You implement IMouseHandler and IKeyboardHandler, then call Subscribe, passing in your handler. Upon each Poll call, your subscription(s) will receive calls if any change of state occurred.
 
@@ -16,9 +14,11 @@ A sample project is provided which shows how the events work and how to use the 
 
 The library has 83% test coverage.
 
+This library vastly reduces the amount of boilerplate, repetitive code that you would have to implement yourself in your own project.
+
 ## Example - Keyboard
 
-1) In your application, create a new KeyboardInput object.  You will want to do this in the initialization phase of your game.
+1) In your application, create a new KeyboardInput object.  You will want to do this in the initialization phase of your game:
 
 ```
     public class MyGame
@@ -32,7 +32,7 @@ The library has 83% test coverage.
     }
 ```
 
-2) Create a new class that inherits from IKeyboardHandler.  Implement all the methods from the interface.
+2) Create a new class that inherits from IKeyboardHandler.  Implement all the methods from the interface:
 
 ```
     public class KeyboardHandler : IKeyboardHandler
@@ -49,7 +49,7 @@ The library has 83% test coverage.
     }
 ```
 
-3)  Subscribe your new keyboard handler to KeyboardInput by calling KeyboardInput.Subscribe
+3)  Subscribe your new keyboard handler to KeyboardInput by calling KeyboardInput.Subscribe:
 
 ```
     public class MyGame
@@ -73,7 +73,7 @@ The library has 83% test coverage.
     }
 ```
         
-4) In your game's Update method, call KeyboardInput.Poll
+4) In your game's Update method, call KeyboardInput.Poll:
 
 ```
     public class MyGame
@@ -115,7 +115,7 @@ The following properties can be changed on KeyboardInput to control how keyboard
 
 ## Example - Mouse
 
-Setting up a mouse is almost identical to a keyboard.  You create a MouseInput object, create a new mouse handler class that inherits from IMouseHandler, implementing the methods, subscribe the handler to MouseInput and call MouseInput.Poll in your game's Update method
+Setting up a mouse is almost identical to a keyboard.  You create a MouseInput object, create a new mouse handler class that inherits from IMouseHandler, implementing the methods, subscribe the handler to MouseInput and call MouseInput.Poll in your game's Update method:
 
 ```
     public class MyGame
@@ -211,6 +211,9 @@ HandleMiddleMouseDragDone
 
 
 ## Version History
+
+### 1.8.0
+Updated to .NET 8 and MonoGame 3.8.2
 
 ### 1.7.0
 Pending subscriptions are now internally time stamped. Prior to this, if you called Remove subscription and immediately performed Add with one of the added objects being one of those in the set being removed then the add would not happen. Now the order of remove and add calls are known and this scenario will now work as expected.
