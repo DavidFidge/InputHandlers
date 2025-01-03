@@ -1,10 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <IsPackable>true</IsPackable>
     <RootNamespace>InputHandlers</RootNamespace>
-    <Version>1.7.0</Version>
+    <Version>1.8.0</Version>
     <PackageId>InputHandlers.MonoGame</PackageId>
     <Authors>David Fidge</Authors>
     <Description>Input Handling library for MonoGame. For more information, go to the Github page using the Project Website link.</Description>
@@ -16,6 +16,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="MonoGame.Framework.DesktopGL" Version="3.8.1.303" />
+    <PackageReference Include="MonoGame.Framework.DesktopGL" Version="3.8.2.1105" />
   </ItemGroup>
 </Project>
