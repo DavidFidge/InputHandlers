@@ -212,6 +212,9 @@ HandleMiddleMouseDragDone
 
 ## Version History
 
+### 1.8.0
+Updated to .NET 8 and MonoGame 3.8.2
+
 ### 1.7.0
 Pending subscriptions are now internally time stamped. Prior to this, if you called Remove subscription and immediately performed Add with one of the added objects being one of those in the set being removed then the add would not happen. Now the order of remove and add calls are known and this scenario will now work as expected.
 
