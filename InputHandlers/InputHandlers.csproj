@@ -4,18 +4,18 @@
     <TargetFramework>net8.0-windows</TargetFramework>
     <IsPackable>true</IsPackable>
     <RootNamespace>InputHandlers</RootNamespace>
-    <Version>1.8.0</Version>
+    <Version>1.9.0</Version>
     <PackageId>InputHandlers.MonoGame.WindowsDX</PackageId>
     <Authors>David Fidge</Authors>
     <Description>Input Handling library for MonoGame. For more information, go to the Github page using the Project Website link.</Description>
     <Copyright>Copyright 2025</Copyright>
     <PackageProjectUrl>https://github.com/DavidFidge/InputHandlers</PackageProjectUrl>
     <RepositoryUrl>https://github.com/DavidFidge/InputHandlers</RepositoryUrl>
-    <PackageReleaseNotes>Updated to .Net 8 and MonoGame 3.8.2.</PackageReleaseNotes>
+    <PackageReleaseNotes>Updated to MonoGame 3.8.3.</PackageReleaseNotes>
     <PackageTags>MonoGame;Input;Mouse;Keyboard</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.2.1105" />
+    <PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.3" />
   </ItemGroup>
 </Project>

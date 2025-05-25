@@ -212,6 +212,9 @@ HandleMiddleMouseDragDone
 
 ## Version History
 
+### 1.9.0
+Updated to MonoGame 3.8.3
+
 ### 1.8.0
 Updated to .NET 8 and MonoGame 3.8.2
 
